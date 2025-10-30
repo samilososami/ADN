@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ADN → Música • A T C G</title>
+<style>
+  :root{
+    --bg: #0b0f14;
+    --card: #121821;
+    --muted: #9fb0c7;
+    --text: #e7eefc;
+    --accent: #6ae3ff;
+    --accent2: #9c7bff;
+    --good: #6BFFA8;
+    --warn: #ffb86b;
+
+    --A: #ff5c8a; /* A */
+    --T: #ffd166; /* T */
+    --C: #6ee7ff; /* C */
+    --G: #7CFF7A; /* G */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:
+      radial-gradient(1200px 1200px at 120% -10%, rgba(108,99,255,.25), transparent 60%),
+      radial-gradient(1200px 1200px at -20% 110%, rgba(0,212,255,.20), transparent 60%),
+      var(--bg);
+    color:var(--text); font:500 16px/1.35 ui-sans-serif, system-ui, Segoe UI, Roboto, Inter, Arial;
+    letter-spacing:.2px;
+  }
+  header{
+    padding:28px 18px 8px; text-align:center;
+  }
+  header h1{
+    margin:0 0 6px; font-weight:800; font-size:clamp(22px, 4.5vw, 36px);
+    letter-spacing:.5px;
+  }
+  header p{margin:0;color:var(--muted)}
+  .container{
+    max-width:1200px; margin:18px auto 32px; padding:0 16px; display:grid;
+    grid-template-columns: 1.1fr .9fr; gap:18px;
+  }
+  @media (max-width:1000px){
+    .container{grid-template-columns: 1fr; }
+  }
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+    border-radius:18px; padding:16px;
+  }
+  .row{display:flex; gap:12px; flex-wrap:wrap}
+  .row > *{flex:1}
+  label{display:block; font-size:13px; color:var(--muted); margin:0 0 6px 4px}
+  textarea{
+    width:100%; min-height:140px; resize:vertical; padding:12px 14px; border-radius:14px;
+    border:1px solid rgba(255,255,255,.08); background:#0f141c; color:var(--text); outline:none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "JetBrains Mono", monospace;
+    font-size:15px; letter-spacing:.8px;
+  }
+  .stats{display:flex; gap:14px; flex-wrap:wrap; margin-top:10px}
+  .badge{
+    background:#0f151d; border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:999px;
+    font-size:13px; color:var(--muted)
+  }
+  .controls{
+    display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-top:12px
+  }
+  @media (max-width:640px){ .controls{grid-template-columns:1fr} }
+  .control{
+    background:#0f151d; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px 12px
+  }
+  .control .inline{display:flex; align-items:center; gap:10px}
+  input[type="range"]{width:100%}
+  select, input[type="number"], input[type="text"]{
+    width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.1);
+    background:#0f141c; color:var(--text); outline:none;
+  }
+  .btn{
+    appearance:none; border:none; border-radius:12px; padding:12px 14px; cursor:pointer; font-weight:700;
+    color:#061017; background:linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 8px 24px rgba(94, 190, 255, .25), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn.secondary{
+    background:#0f151d; color:var(--text); border:1px solid rgba(255,255,255,.1); box-shadow:none
+  }
+  .btn.warn{ background: linear-gradient(135deg, #ffd166, #ff9966)}
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+  .playbar{display:flex; gap:10px; margin-top:8px; flex-wrap:wrap}
+  .grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(24px, 1fr)); gap:6px; margin-top:12px; max-height:260px; overflow:auto;
+    background:#0f151d; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:10px;
+  }
+  .cell{
+    aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900;
+    color:#061017; border-radius:8px; user-select:none; transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  .cell[data-b="A"]{ background:var(--A) }
+  .cell[data-b="T"]{ background:var(--T) }
+  .cell[data-b="C"]{ background:var(--C); color:#07222a }
+  .cell[data-b="G"]{ background:var(--G); color:#07320b }
+  .cell.invalid{ background:#2a2a2a; color:#aaa; border:1px dashed #444}
+  .cell.active{ transform:scale(1.1); box-shadow: 0 0 0 3px rgba(255,255,255,.25) inset; filter: brightness(1.08) }
+  canvas#scope{
+    width:100%; height:220px; display:block; border-radius:14px; background:#0f151d;
+    border:1px solid rgba(255,255,255,.06); margin-top:12px;
+  }
+  .legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+  .chip{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted)}
+  .dot{width:12px; height:12px; border-radius:999px}
+  .dot.A{background:var(--A)} .dot.T{background:var(--T)} .dot.C{background:var(--C)} .dot.G{background:var(--G)}
+  .note{font-size:12px; color:var(--muted); margin-top:6px}
+  footer{opacity:.7; text-align:center; padding:20px 14px; font-size:12px; color:var(--muted)}
+  .link{color:var(--accent)}
+  .rec{display:inline-flex; align-items:center; gap:8px}
+  .rec-dot{
+    width:10px; height:10px; border-radius:50%; background:#ff4d4d; box-shadow:0 0 0 0 rgba(255,77,77,.7);
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow:0 0 0 0 rgba(255,77,77,.7) }
+    70% { box-shadow:0 0 0 8px rgba(255,77,77,0) }
+    100% { box-shadow:0 0 0 0 rgba(255,77,77,0) }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>ADN → Música</h1>
+    <p>Escribe una secuencia con bases <strong>A, T, C, G</strong>. Cada base es una nota. Bigramas y codones pueden disparar armonías.</p>
+  </header>
+
+  <div class="container">
+    <section class="card">
+      <label for="seq">Secuencia de ADN (se ignoran caracteres no válidos)</label>
+      <textarea id="seq" spellcheck="false" placeholder="Ej.: ATGCGTATTTGACCTGA..."></textarea>
+      <div class="stats">
+        <span class="badge" id="lenStat">Longitud: 0</span>
+        <span class="badge" id="countA">A: 0</span>
+        <span class="badge" id="countT">T: 0</span>
+        <span class="badge" id="countC">C: 0</span>
+        <span class="badge" id="countG">G: 0</span>
+        <span class="badge" id="invalid">Inválidos: 0</span>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <label>Tempo (BPM)</label>
+          <div class="inline">
+            <input id="bpm" type="range" min="40" max="220" step="1" value="120">
+            <input id="bpmNum" type="number" min="40" max="220" step="1" value="120" style="max-width:90px">
+          </div>
+        </div>
+        <div class="control">
+          <label>Forma de onda</label>
+          <select id="wave">
+            <option value="sine">Seno</option>
+            <option value="triangle">Triángulo</option>
+            <option value="square">Cuadrada</option>
+            <option value="sawtooth">Sierra</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Escala / Tono base</label>
+          <div class="row">
+            <select id="scale">
+              <option value="major">Mayor</option>
+              <option value="minor">Menor</option>
+              <option value="pentatonic">Pentatónica</option>
+              <option value="chromatic">Cromática</option>
+            </select>
+            <select id="root">
+              <option>C</option><option>C#</option><option>D</option><option>D#</option>
+              <option>E</option><option>F</option><option>F#</option><option>G</option>
+              <option>G#</option><option>A</option><option>A#</option><option>B</option>
+            </select>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div class="inline" style="gap:8px">
+              <label style="margin:0">Octava</label>
+              <input id="octave" type="number" min="-2" max="3" step="1" value="0" style="max-width:80px">
+            </div>
+            <div class="inline">
+              <label style="margin:0">Duración nota (pasos)</label>
+              <select id="div">
+                <option value="1">Negra (1)</option>
+                <option value="0.5">Corchea (1/2)</option>
+                <option value="0.25">Semicorchea (1/4)</option>
+                <option value="2">Blanca (2)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="control">
+          <label>Eventos especiales</label>
+          <div class="row">
+            <label class="inline" style="gap:8px"><input id="combos" type="checkbox" checked> Bigramas → armonías</label>
+            <label class="inline" style="gap:8px"><input id="codons" type="checkbox" checked> Codones (ATG / TAA, TAG, TGA)</label>
+            <label class="inline" style="gap:8px"><input id="tripletArp" type="checkbox"> Arpegiar codones</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="playbar">
+        <button class="btn" id="play">▶️ Reproducir</button>
+        <button class="btn secondary" id="pause">⏸️ Pausa</button>
+        <button class="btn secondary" id="stop">⏹️ Parar</button>
+        <button class="btn warn" id="record">⏺️ Grabar</button>
+        <a id="downloadLink" class="btn secondary" style="display:none" download="adn-musica.webm">⬇️ Descargar</a>
+        <button class="btn secondary" id="example">Cargar ejemplo</button>
+        <button class="btn secondary" id="clear">Limpiar</button>
+      </div>
+
+      <div class="note">Bases válidas: <strong>A, T, C, G</strong>. Los caracteres distintos se marcan como inválidos y no suenan.</div>
+      <div class="legend">
+        <span class="chip"><span class="dot A"></span>A</span>
+        <span class="chip"><span class="dot T"></span>T</span>
+        <span class="chip"><span class="dot C"></span>C</span>
+        <span class="chip"><span class="dot G"></span>G</span>
+      </div>
+
+      <div id="grid" class="grid" aria-label="Visualización de la secuencia"></div>
+    </section>
+
+    <section class="card">
+      <label>Visualizador</label>
+      <canvas id="scope"></canvas>
+
+      <div class="card" style="margin-top:12px; background:#0b1219">
+        <h3 style="margin:6px 0 10px; font-size:16px">Asignación de notas</h3>
+        <p class="note" style="margin-top:0">Las bases se mapean a grados de la escala elegida. Puedes previsualizar los tonos.</p>
+        <div class="row">
+          <button class="btn secondary test" data-b="A">Probar A</button>
+          <button class="btn secondary test" data-b="T">Probar T</button>
+          <button class="btn secondary test" data-b="C">Probar C</button>
+          <button class="btn secondary test" data-b="G">Probar G</button>
+        </div>
+        <p class="note" style="margin-top:10px">Bigramas predeterminados (si está activo “Bigramas”): <strong>AT</strong> (tercera mayor), <strong>TA</strong> (tercera menor), <strong>CG</strong> (quinta justa), <strong>GC</strong> (cuarta justa), <strong>AA/TT/CC/GG</strong> (octava).</p>
+        <p class="note">Codón de inicio <strong>ATG</strong> ⇒ campanada ascendente. Codones stop <strong>TAA/TAG/TGA</strong> ⇒ descenso suave. Si marcas “Arpegiar codones”, cada triplete suena como arpegio rápido.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer>Hecho con Web Audio API. Consejo: usa secuencias con longitud 60–600 para resultados musicales agradables.</footer>
+
+<script>
+(() => {
+  // ===== Utilidades musicales =====
+  const A4 = 440;
+  const noteIndex = {C:0,"C#":1,D:2,"D#":3,E:4,F:5,"F#":6,G:7,"G#":8,A:9,"A#":10,B:11};
+  const scales = {
+    major:     [0,2,4,5,7,9,11],
+    minor:     [0,2,3,5,7,8,10],
+    pentatonic:[0,2,4,7,9],
+    chromatic: Array.from({length:12}, (_,i)=>i)
+  };
+  const baseDegreeIndex = { A:0, T:1, C:2, G:4 }; // grados dentro de la escala (1,2,3,5)
+  const baseColors = {A:'var(--A)', T:'var(--T)', C:'var(--C)', G:'var(--G)'};
+
+  function midiToFreq(m){
+    return 440 * Math.pow(2, (m-69)/12);
+  }
+  function keyOctToMidi(key="C", octaveOffset=0){
+    // raíz en C4=60 => raíz dirigida a octava 4 + offset
+    const rootMidi = 60 + noteIndex[key] + (octaveOffset*12);
+    return rootMidi;
+  }
+  function baseToFreq(base, key, scaleName, octaveOffset){
+    const rootMidi = keyOctToMidi(key, 0 + octaveOffset);
+    const scale = scales[scaleName] ?? scales.major;
+    const degIdx = baseDegreeIndex[base];
+    const degree = scale[degIdx % scale.length];
+    // Para variedad, distribuye A,T,C,G en dos octavas cuando la escala es corta
+    const extraOct = (degIdx >= scale.length) ? 12 : 0;
+    return midiToFreq(rootMidi + degree + extraOct);
+  }
+
+  // ===== Estado de UI =====
+  const dom = {
+    seq: document.getElementById('seq'),
+    grid: document.getElementById('grid'),
+    bpm: document.getElementById('bpm'),
+    bpmNum: document.getElementById('bpmNum'),
+    wave: document.getElementById('wave'),
+    scale: document.getElementById('scale'),
+    root: document.getElementById('root'),
+    octave: document.getElementById('octave'),
+    div: document.getElementById('div'),
+    combos: document.getElementById('combos'),
+    codons: document.getElementById('codons'),
+    tripletArp: document.getElementById('tripletArp'),
+    play: document.getElementById('play'),
+    pause: document.getElementById('pause'),
+    stop: document.getElementById('stop'),
+    record: document.getElementById('record'),
+    downloadLink: document.getElementById('downloadLink'),
+    example: document.getElementById('example'),
+    clear: document.getElementById('clear'),
+    lenStat: document.getElementById('lenStat'),
+    countA: document.getElementById('countA'),
+    countT: document.getElementById('countT'),
+    countC: document.getElementById('countC'),
+    countG: document.getElementById('countG'),
+    invalid: document.getElementById('invalid'),
+    tests: Array.from(document.querySelectorAll('.test')),
+    scope: document.getElementById('scope')
+  };
+
+  // ===== Audio Graph =====
+  let audioCtx = null, masterGain, analyser, filter, dest, mediaRecorder, chunks=[];
+  let playing = false, paused = false, stepTimer = null, currentIndex = 0;
+  let seqClean = "", seqInvalidCount = 0;
+
+  function ensureAudio(){
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.9;
+
+    filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 14000;
+
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+
+    dest = audioCtx.createMediaStreamDestination(); // para grabación
+
+    // master -> filter -> analyser -> destination (+ recorder)
+    masterGain.connect(filter);
+    filter.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    analyser.connect(dest);
+
+    startVisualizer();
+  }
+
+  function makeEnv(duration){
+    const g = audioCtx.createGain();
+    const now = audioCtx.currentTime;
+    const a = Math.min(0.01, duration*0.1);
+    const d = Math.min(0.06, duration*0.2);
+    const s = 0.85;
+    const r = Math.min(0.12, duration*0.25);
+
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(1, now+a);
+    g.gain.linearRampToValueAtTime(s, now+a+d);
+    g.gain.linearRampToValueAtTime(0, now+duration+r);
+    return g;
+  }
+
+  function playTone(freq, duration, type){
+    const osc = audioCtx.createOscillator();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const env = makeEnv(duration);
+    osc.connect(env).connect(masterGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration + 0.2);
+  }
+
+  function playHarmonic(freq, ratio, duration, type, gainMul=0.6){
+    const osc = audioCtx.createOscillator();
+    osc.type = type;
+    osc.frequency.value = freq * ratio;
+    const env = makeEnv(duration);
+    env.gain.value *= gainMul;
+    osc.connect(env).connect(masterGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration + 0.2);
+  }
+
+  function chimeUp(baseFreq){
+    const t = 0.18;
+    playTone(baseFreq*1.0, t, 'sine');
+    setTimeout(()=>playTone(baseFreq*5/4, t, 'sine'), 120);
+    setTimeout(()=>playTone(baseFreq*3/2, t, 'sine'), 240);
+  }
+  function chimeDown(baseFreq){
+    const t = 0.18;
+    playTone(baseFreq*3/2, t, 'triangle');
+    setTimeout(()=>playTone(baseFreq*5/4, t, 'triangle'), 120);
+    setTimeout(()=>playTone(baseFreq*1.0, t, 'triangle'), 240);
+  }
+
+  // ===== Visualizador (osc) =====
+  function startVisualizer(){
+    const ctx = dom.scope.getContext('2d');
+    function loop(){
+      if (!analyser) return requestAnimationFrame(loop);
+      const W = dom.scope.width = dom.scope.clientWidth * devicePixelRatio;
+      const H = dom.scope.height = dom.scope.clientHeight * devicePixelRatio;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+
+      ctx.clearRect(0,0,W,H);
+      const grd = ctx.createLinearGradient(0,0,W,0);
+      grd.addColorStop(0,'#6ae3ff'); grd.addColorStop(1,'#9c7bff');
+      ctx.fillStyle = grd;
+
+      const barW = Math.max(2, (W / data.length)*1.5);
+      for (let i=0;i<data.length;i++){
+        const v = data[i]/255;
+        const h = v * (H*0.9);
+        const x = i*barW;
+        const y = H - h;
+        ctx.fillRect(x, y, barW*0.9, h);
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  // ===== Secuencia y grid =====
+  function sanitizeSeq(raw){
+    const up = (raw || "").toUpperCase().replace(/\s+/g,'');
+    let clean = "", invalid=0;
+    for (const ch of up){
+      if ("ATCG".includes(ch)) clean += ch;
+      else if (ch) invalid++;
+    }
+    return [clean, invalid];
+  }
+
+  function renderGrid(){
+    dom.grid.innerHTML = "";
+    const frag = document.createDocumentFragment();
+    [...seqClean].forEach((b, i) => {
+      const div = document.createElement('div');
+      div.className = 'cell';
+      div.dataset.i = i;
+      div.dataset.b = b;
+      div.textContent = b;
+      frag.appendChild(div);
+    });
+    // pinta también inválidos (si hubiera)
+    if (seqInvalidCount > 0){
+      const inv = document.createElement('div');
+      inv.className = 'cell invalid';
+      inv.title = `${seqInvalidCount} inválidos ignorados`;
+      inv.textContent = '…';
+      frag.appendChild(inv);
+    }
+    dom.grid.appendChild(frag);
+  }
+
+  function updateStats(){
+    dom.lenStat.textContent = `Longitud: ${seqClean.length}`;
+    dom.countA.textContent = `A: ${[...seqClean].filter(c=>c==='A').length}`;
+    dom.countT.textContent = `T: ${[...seqClean].filter(c=>c==='T').length}`;
+    dom.countC.textContent = `C: ${[...seqClean].filter(c=>c==='C').length}`;
+    dom.countG.textContent = `G: ${[...seqClean].filter(c=>c==='G').length}`;
+    dom.invalid.textContent = `Inválidos: ${seqInvalidCount}`;
+  }
+
+  function setActiveCell(i){
+    const prev = dom.grid.querySelector('.cell.active');
+    if (prev) prev.classList.remove('active');
+    const next = dom.grid.querySelector(`.cell[data-i="${i}"]`);
+    if (next) next.classList.add('active');
+  }
+
+  // ===== Reproducción =====
+  function stepDurationSec(){
+    const bpm = Number(dom.bpm.value);
+    const div = Number(dom.div.value);
+    const quarter = 60 / bpm; // negra
+    return quarter * div;
+  }
+
+  function scheduleNext(){
+    if (!playing || paused) return;
+    const dur = stepDurationSec();
+    const key = dom.root.value;
+    const scaleName = dom.scale.value;
+    const wave = dom.wave.value;
+    const oct = Number(dom.octave.value);
+
+    if (currentIndex >= seqClean.length){
+      stop();
+      return;
+    }
+
+    const b = seqClean[currentIndex];
+    const baseFreq = baseToFreq(b, key, scaleName, oct);
+    playTone(baseFreq, Math.max(0.12, dur*0.9), wave);
+
+    // Combos (bigramas)
+    if (dom.combos.checked && currentIndex < seqClean.length-1){
+      const pair = b + seqClean[currentIndex+1];
+      const ratios = {
+        'AT': 5/4, // tercera mayor
+        'TA': 6/5, // tercera menor
+        'CG': 3/2, // quinta justa
+        'GC': 4/3, // cuarta justa
+        'AA': 2.0,
+        'TT': 2.0,
+        'CC': 2.0,
+        'GG': 2.0
+      };
+      const r = ratios[pair];
+      if (r){
+        playHarmonic(baseFreq, r, Math.max(0.08, dur*0.7), wave, 0.5);
+      }
+    }
+
+    // Codones
+    if (dom.codons.checked && currentIndex <= seqClean.length-3){
+      const tri = seqClean.slice(currentIndex, currentIndex+3);
+      if (tri === 'ATG') chimeUp(baseFreq);
+      if (['TAA','TAG','TGA'].includes(tri)) chimeDown(baseFreq);
+      if (dom.tripletArp.checked){
+        // arpegio muy rápido dentro del mismo paso
+        const s = Math.max(0.06, dur*0.28);
+        const b2 = seqClean[currentIndex+1], b3 = seqClean[currentIndex+2];
+        const f2 = baseToFreq(b2, key, scaleName, oct);
+        const f3 = baseToFreq(b3, key, scaleName, oct);
+        setTimeout(()=>playTone(f2, s, wave), Math.max(60, dur*1000*0.33));
+        setTimeout(()=>playTone(f3, s, wave), Math.max(120, dur*1000*0.66));
+      }
+    }
+
+    setActiveCell(currentIndex);
+    currentIndex++;
+    stepTimer = setTimeout(scheduleNext, dur*1000);
+  }
+
+  function play(){
+    if (!seqClean.length) return;
+    ensureAudio();
+    audioCtx.resume && audioCtx.resume();
+    playing = true;
+    paused = false;
+    scheduleNext();
+    togglePlayButtons();
+  }
+
+  function pause(){
+    paused = true;
+    togglePlayButtons();
+  }
+
+  function stop(){
+    playing = false;
+    paused = false;
+    currentIndex = 0;
+    clearTimeout(stepTimer);
+    setActiveCell(-1);
+    togglePlayButtons();
+  }
+
+  function togglePlayButtons(){
+    dom.play.disabled = playing && !paused;
+    dom.pause.disabled = !playing || paused;
+    dom.stop.disabled = !playing && !paused;
+  }
+
+  // ===== Grabación =====
+  let recording = false;
+  function toggleRecord(){
+    ensureAudio();
+    if (!mediaRecorder){
+      mediaRecorder = new MediaRecorder(dest.stream);
+      mediaRecorder.ondataavailable = e => { if (e.data.size>0) chunks.push(e.data) };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, {type: 'audio/webm'});
+        chunks = [];
+        const url = URL.createObjectURL(blob);
+        dom.downloadLink.href = url;
+        dom.downloadLink.style.display = '';
+      };
+    }
+    if (!recording){
+      dom.downloadLink.style.display = 'none';
+      mediaRecorder.start();
+      recording = true;
+      dom.record.innerHTML = `<span class="rec"><span class="rec-dot"></span> Grabando...</span>`;
+      dom.record.classList.add('warn');
+    }else{
+      mediaRecorder.stop();
+      recording = false;
+      dom.record.textContent = '⏺️ Grabar';
+      dom.record.classList.remove('warn');
+    }
+  }
+
+  // ===== Eventos UI =====
+  function refresh(){
+    const [clean, invalid] = sanitizeSeq(dom.seq.value);
+    seqClean = clean;
+    seqInvalidCount = invalid;
+    renderGrid();
+    updateStats();
+  }
+
+  dom.seq.addEventListener('input', ()=>{ refresh(); });
+  dom.example.addEventListener('click', ()=>{
+    dom.seq.value = `ATG GCT TTA CGC GGA TTA ACG TGA
+    ATG CCG TTT GAA CCA TGA
+    ATG GAA GAA GAA TAA
+    GCG CGC GCG CGC TTT AAA CCC GGG TAA`.replace(/\s+/g,'');
+    refresh();
+  });
+  dom.clear.addEventListener('click', ()=>{ dom.seq.value=''; refresh(); });
+
+  [dom.bpm, dom.bpmNum].forEach(el=>{
+    el.addEventListener('input', (e)=>{
+      if (e.target === dom.bpm) dom.bpmNum.value = dom.bpm.value;
+      else dom.bpm.value = dom.bpmNum.value;
+    });
+  });
+
+  dom.play.addEventListener('click', ()=>{
+    if (paused){ paused=false; scheduleNext(); togglePlayButtons(); }
+    else { currentIndex = 0; play(); }
+  });
+  dom.pause.addEventListener('click', ()=> pause());
+  dom.stop.addEventListener('click', ()=> stop());
+  dom.record.addEventListener('click', ()=> toggleRecord());
+
+  dom.tests.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      ensureAudio();
+      const b = btn.dataset.b;
+      const f = baseToFreq(b, dom.root.value, dom.scale.value, Number(dom.octave.value));
+      playTone(f, 0.25, dom.wave.value);
+    });
+  });
+
+  // Accesibilidad: barra espaciadora para play/pausa
+  document.addEventListener('keydown', (e)=>{
+    if (e.code === 'Space' && !e.repeat){
+      e.preventDefault();
+      if (!playing || paused) dom.play.click(); else dom.pause.click();
+    }
+  });
+
+  // Inicial
+  refresh();
+  togglePlayButtons();
+})();
+</script>
+</body>
+</html>
