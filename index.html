@@ -3,529 +3,1099 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>RNA → Música • G U A C (codones)</title>
+<title>RNA → Música por Codones | Bioinformática Musical</title>
 <style>
-  :root{
-    --bg:#0b0f14; --card:#121821; --muted:#9fb0c7; --text:#e7eefc;
-    --accent:#6ae3ff; --accent2:#9c7bff; --good:#6BFFA8; --warn:#ffb86b;
-    --G:#7CFF7A; --U:#ffd166; --A:#ff5c8a; --C:#6ee7ff;
+  :root {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: #1e293b;
+    --bg-accent: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-primary: #0ea5e9;
+    --accent-secondary: #3b82f6;
+    --accent-tertiary: #8b5cf6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --G: #10b981;
+    --U: #f59e0b;
+    --A: #ef4444;
+    --C: #0ea5e9;
+    --border-radius: 12px;
+    --transition: all 0.2s ease;
   }
-  *{box-sizing:border-box} html,body{height:100%}
-  body{
-    margin:0; background:
-      radial-gradient(1200px 1200px at 120% -10%, rgba(108,99,255,.25), transparent 60%),
-      radial-gradient(1200px 1200px at -20% 110%, rgba(0,212,255,.20), transparent 60%),
-      var(--bg);
-    color:var(--text); font:500 16px/1.35 ui-sans-serif,system-ui,Segoe UI,Roboto,Inter,Arial;
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
-  header{padding:28px 18px 8px; text-align:center}
-  header h1{margin:0 0 6px; font-weight:800; font-size:clamp(22px,4.6vw,38px)}
-  header p{margin:0;color:var(--muted)}
-  .container{max-width:1200px; margin:18px auto 32px; padding:0 16px; display:grid; gap:18px; grid-template-columns:1.1fr .9fr}
-  @media (max-width:1000px){ .container{grid-template-columns:1fr} }
-  .card{
-    background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.00));
-    border:1px solid rgba(255,255,255,.06); border-radius:18px; padding:16px;
-    box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+
+  html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-primary);
   }
-  label{display:block; font-size:13px; color:var(--muted); margin:0 0 6px 4px}
-  textarea{
-    width:100%; min-height:130px; resize:vertical; padding:12px 14px; border-radius:14px;
-    border:1px solid rgba(255,255,255,.08); background:#0f141c; color:var(--text); outline:none;
-    font-family:ui-monospace,Menlo,Consolas,"JetBrains Mono",monospace; font-size:15px; letter-spacing:.8px;
+
+  body {
+    display: flex;
+    flex-direction: column;
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(56, 189, 248, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+      var(--bg-primary);
   }
-  .row{display:flex; gap:12px; flex-wrap:wrap}
-  .row>*{flex:1}
-  .controls{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:12px}
-  @media (max-width:640px){.controls{grid-template-columns:1fr}}
-  .control{background:#0f151d; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px 12px}
-  input[type="range"]{width:100%}
-  select,input[type="number"]{
-    width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.1);
-    background:#0f141c; color:var(--text);
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 100%;
   }
-  .btn{
-    appearance:none; border:none; border-radius:12px; padding:12px 14px; cursor:pointer; font-weight:800;
-    color:#061017; background:linear-gradient(135deg,var(--accent),var(--accent2));
-    box-shadow:0 8px 24px rgba(94,190,255,.25), inset 0 1px 0 rgba(255,255,255,.25);
+
+  /* Header */
+  header {
+    padding: 2rem 0 1rem;
+    text-align: center;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
-  .btn.secondary{background:#0f151d; color:var(--text); border:1px solid rgba(255,255,255,.1); box-shadow:none}
-  .btn.warn{ background:linear-gradient(135deg,#ffd166,#ff9966) }
-  .playbar{display:flex; gap:10px; margin-top:8px; flex-wrap:wrap}
-  .stats{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; color:var(--muted); font-size:13px}
-  .badge{background:#0f151d; border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:999px}
-  .grid{
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
-    gap:6px; margin-top:12px; max-height:240px; overflow:auto;
-    background:#0f151d; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:10px;
+
+  header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  .cell{
-    aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900;
-    color:#061017; border-radius:8px; user-select:none; transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+
+  header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
   }
-  .cell[data-b="G"]{background:var(--G); color:#07320b}
-  .cell[data-b="U"]{background:var(--U); color:#3b2a00}
-  .cell[data-b="A"]{background:var(--A)}
-  .cell[data-b="C"]{background:var(--C); color:#07222a}
-  .cell.active{ transform:scale(1.08); box-shadow:0 0 0 3px rgba(255,255,255,.25) inset; filter:brightness(1.08) }
-  .codons{
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px; margin-top:12px;
+
+  /* Main Layout */
+  .main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 2rem 0;
+    flex: 1;
   }
-  .codon-card{
-    background:#0f151d; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px;
-    display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer;
-    transition:transform .12s ease, box-shadow .12s ease; min-height:54px;
+
+  @media (max-width: 1024px) {
+    .main-content {
+      grid-template-columns: 1fr;
+    }
   }
-  .codon-card:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.25)}
-  .codon-triplet{font:800 18px ui-monospace,Menlo,Consolas; letter-spacing:1px}
-  .codon-name{font-size:12px; color:var(--muted)}
-  .pill{padding:4px 8px; border-radius:999px; font-size:12px; background:#101821; border:1px solid rgba(255,255,255,.08)}
-  .pill.stop{background:#2b1620;border-color:#ff6b8a;color:#ffc7d3}
-  canvas#scope{width:100%; height:210px; display:block; border-radius:14px; background:#0f151d; border:1px solid rgba(255,255,255,.06); margin-top:12px}
-  details{margin-top:12px}
-  summary{cursor:pointer; color:var(--muted)}
-  .codon-table{display:grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap:8px; margin-top:10px}
-  .ctile{background:#0f151d; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:8px; cursor:pointer}
-  .ctile b{font-family:ui-monospace; font-size:14px}
-  footer{opacity:.7; text-align:center; padding:18px 14px; font-size:12px; color:var(--muted)}
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition);
+  }
+
+  .card:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .card-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  /* Form Controls */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.5);
+    color: var(--text-primary);
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    resize: vertical;
+    transition: var(--transition);
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+  }
+
+  .input-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  select, input[type="number"] {
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.5);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+
+  select:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    cursor: pointer;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    border: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--transition);
+    gap: 0.5rem;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-warning {
+    background: var(--warning);
+    color: white;
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  /* Stats */
+  .stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+  }
+
+  .stat-value {
+    font-weight: 700;
+  }
+
+  .stat-G { color: var(--G); }
+  .stat-U { color: var(--U); }
+  .stat-A { color: var(--A); }
+  .stat-C { color: var(--C); }
+
+  /* Grid Visualization */
+  .grid-container {
+    margin-top: 1rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .cell {
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: rgba(0, 0, 0, 0.8);
+    transition: var(--transition);
+    user-select: none;
+  }
+
+  .cell[data-b="G"] { background: var(--G); }
+  .cell[data-b="U"] { background: var(--U); }
+  .cell[data-b="A"] { background: var(--A); }
+  .cell[data-b="C"] { background: var(--C); }
+
+  .cell.active {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
+    z-index: 1;
+  }
+
+  /* Codons List */
+  .codons-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .codon-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid transparent;
+  }
+
+  .codon-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .codon-triplet {
+    font-family: 'Fira Code', monospace;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .codon-name {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .codon-aa {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .codon-aa.stop {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+  }
+
+  /* Canvas */
+  .visualization-container {
+    margin-top: 1rem;
+  }
+
+  canvas#scope {
+    width: 100%;
+    height: 200px;
+    border-radius: var(--border-radius);
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Codon Table */
+  .codon-table-container {
+    margin-top: 1.5rem;
+  }
+
+  .codon-table {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .codon-tile {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .codon-tile:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .codon-tile b {
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+  }
+
+  .codon-tile .amino-acid {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0.25rem 0;
+  }
+
+  /* Footer */
+  footer {
+    padding: 1.5rem 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 2rem;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .main-content {
+      padding: 1rem 0;
+    }
+    
+    .card {
+      padding: 1rem;
+    }
+    
+    .input-group {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .btn-group {
+      justify-content: center;
+    }
+    
+    .stats {
+      justify-content: center;
+    }
+    
+    .codons-list {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+    
+    .codon-table {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+  }
+
+  /* Animations */
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  .pulse {
+    animation: pulse 0.5s ease;
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>RNA → Música por Codones</h1>
-  <p>Usa bases <strong>G, U, A, C</strong>. El sonido se genera <strong>cada 3 letras (codón)</strong>. Haz clic en un codón para escucharlo.</p>
-</header>
-
-<div class="container">
-  <section class="card">
-    <label for="seq">Secuencia RNA (se ignoran caracteres no G/U/A/C)</label>
-    <textarea id="seq" spellcheck="false" placeholder="Ej.: AUGGCUUUUAG..."></textarea>
-    <div class="stats">
-      <span class="badge" id="lenStat">Longitud limpia: 0</span>
-      <span class="badge" id="countG">G: 0</span>
-      <span class="badge" id="countU">U: 0</span>
-      <span class="badge" id="countA">A: 0</span>
-      <span class="badge" id="countC">C: 0</span>
-      <span class="badge" id="invalid">Inválidos: 0</span>
+  <header>
+    <div class="container">
+      <h1>RNA → Música por Codones</h1>
+      <p>Convierte secuencias de RNA en composiciones musicales utilizando el código genético</p>
     </div>
+  </header>
 
-    <div class="controls">
-      <div class="control">
-        <label>Tempo (BPM)</label>
-        <div class="row">
-          <input id="bpm" type="range" min="40" max="220" step="1" value="120">
-          <input id="bpmNum" type="number" min="40" max="220" step="1" value="120" style="max-width:90px">
+  <div class="container">
+    <div class="main-content">
+      <!-- Left Column: Input and Controls -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">Secuencia de RNA</h2>
+          <p class="card-subtitle">Ingresa una secuencia de RNA usando bases G, U, A, C</p>
         </div>
-      </div>
-      <div class="control">
-        <label>Forma de onda</label>
-        <select id="wave">
-          <option value="sine">Seno</option>
-          <option value="triangle">Triángulo</option>
-          <option value="square">Cuadrada</option>
-          <option value="sawtooth">Sierra</option>
-        </select>
-      </div>
-      <div class="control">
-        <label>Tono base / escala</label>
-        <div class="row">
-          <select id="root">
-            <option>C</option><option>C#</option><option>D</option><option>D#</option>
-            <option>E</option><option>F</option><option>F#</option><option>G</option>
-            <option>G#</option><option>A</option><option>A#</option><option>B</option>
-          </select>
-          <select id="scale">
-            <option value="major">Mayor</option>
-            <option value="minor">Menor</option>
-            <option value="pentatonic">Pentatónica</option>
-            <option value="chromatic">Cromática</option>
-          </select>
-          <input id="octave" type="number" min="-2" max="3" step="1" value="0" title="Octava" style="max-width:80px">
+        
+        <div class="form-group">
+          <label for="seq">Secuencia de RNA</label>
+          <textarea id="seq" spellcheck="false" placeholder="Ejemplo: AUGGCUUUUAG..."></textarea>
         </div>
-      </div>
-      <div class="control">
-        <label>Duración del codón</label>
-        <select id="div">
-          <option value="1">Negra (1)</option>
-          <option value="0.5">Corchea (1/2)</option>
-          <option value="0.25">Semicorchea (1/4)</option>
-          <option value="2">Blanca (2)</option>
-        </select>
-      </div>
+
+        <div class="stats">
+          <div class="stat">
+            <span>Longitud:</span>
+            <span class="stat-value" id="lenStat">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-G">G:</span>
+            <span class="stat-value" id="countG">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-U">U:</span>
+            <span class="stat-value" id="countU">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-A">A:</span>
+            <span class="stat-value" id="countA">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-C">C:</span>
+            <span class="stat-value" id="countC">0</span>
+          </div>
+          <div class="stat">
+            <span>Inválidos:</span>
+            <span class="stat-value" id="invalid">0</span>
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <label>Visualización de la secuencia</label>
+          <div class="grid" id="grid"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Configuración de reproducción</label>
+          <div class="input-group">
+            <div style="flex: 1;">
+              <label for="bpm">Tempo (BPM)</label>
+              <input id="bpm" type="range" min="40" max="220" step="1" value="120">
+              <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                <span style="font-size: 0.8rem;">40</span>
+                <span id="bpmValue" style="font-weight: 600;">120</span>
+                <span style="font-size: 0.8rem;">220</span>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <label for="wave">Forma de onda</label>
+              <select id="wave">
+                <option value="sine">Seno</option>
+                <option value="triangle">Triángulo</option>
+                <option value="square">Cuadrada</option>
+                <option value="sawtooth">Sierra</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div style="flex: 1;">
+              <label for="root">Tono base</label>
+              <select id="root">
+                <option>C</option><option>C#</option><option>D</option><option>D#</option>
+                <option>E</option><option>F</option><option>F#</option><option>G</option>
+                <option>G#</option><option>A</option><option>A#</option><option>B</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label for="scale">Escala</label>
+              <select id="scale">
+                <option value="major">Mayor</option>
+                <option value="minor">Menor</option>
+                <option value="pentatonic">Pentatónica</option>
+                <option value="chromatic">Cromática</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label for="octave">Octava</label>
+              <input id="octave" type="number" min="-2" max="3" step="1" value="0">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div style="flex: 1;">
+              <label for="div">Duración del codón</label>
+              <select id="div">
+                <option value="1">Negra (1)</option>
+                <option value="0.5">Corchea (1/2)</option>
+                <option value="0.25">Semicorchea (1/4)</option>
+                <option value="2">Blanca (2)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Controles de reproducción</label>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="play">Reproducir</button>
+            <button class="btn btn-secondary" id="pause">Pausar</button>
+            <button class="btn btn-secondary" id="stop">Detener</button>
+            <button class="btn btn-secondary" id="example">Ejemplo</button>
+            <button class="btn btn-secondary" id="clear">Limpiar</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Probar bases individuales</label>
+          <div class="btn-group">
+            <button class="btn btn-secondary test" data-b="G">G</button>
+            <button class="btn btn-secondary test" data-b="U">U</button>
+            <button class="btn btn-secondary test" data-b="A">A</button>
+            <button class="btn btn-secondary test" data-b="C">C</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Visualization and Codons -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">Visualización y Codones</h2>
+          <p class="card-subtitle">Espectro de audio y codones detectados</p>
+        </div>
+
+        <div class="visualization-container">
+          <label>Espectro de audio</label>
+          <canvas id="scope"></canvas>
+        </div>
+
+        <div class="form-group">
+          <label>Codones detectados</label>
+          <div id="codonList" class="codons-list"></div>
+        </div>
+
+        <div class="codon-table-container">
+          <details>
+            <summary style="cursor: pointer; font-weight: 600; margin-bottom: 1rem;">
+              Tabla completa del código genético (64 codones)
+            </summary>
+            <div id="codonTable" class="codon-table"></div>
+          </details>
+        </div>
+      </section>
     </div>
+  </div>
 
-    <div class="playbar">
-      <button class="btn" id="play">▶️ Reproducir codones</button>
-      <button class="btn secondary" id="pause">⏸️ Pausa</button>
-      <button class="btn secondary" id="stop">⏹️ Parar</button>
-      <button class="btn secondary" id="example">Cargar ejemplo</button>
-      <button class="btn secondary" id="clear">Limpiar</button>
+  <footer>
+    <div class="container">
+      <p>Desarrollado con Web Audio API • Cada codón produce un arpegio único basado en sus bases constituyentes</p>
     </div>
+  </footer>
 
-    <div class="row" style="margin-top:10px">
-      <button class="btn secondary test" data-b="G">Probar G</button>
-      <button class="btn secondary test" data-b="U">Probar U</button>
-      <button class="btn secondary test" data-b="A">Probar A</button>
-      <button class="btn secondary test" data-b="C">Probar C</button>
-    </div>
+  <script>
+    (() => {
+      // ====== Mapeo genético (RNA) ======
+      const CODON = {
+        UUU: {aa: 'Phe', long: 'Fenilalanina', one: 'F'}, UUC: {aa: 'Phe', long: 'Fenilalanina', one: 'F'},
+        UUA: {aa: 'Leu', long: 'Leucina', one: 'L'}, UUG: {aa: 'Leu', long: 'Leucina', one: 'L'},
+        UCU: {aa: 'Ser', long: 'Serina', one: 'S'}, UCC: {aa: 'Ser', long: 'Serina', one: 'S'},
+        UCA: {aa: 'Ser', long: 'Serina', one: 'S'}, UCG: {aa: 'Ser', long: 'Serina', one: 'S'},
+        UAU: {aa: 'Tyr', long: 'Tirosina', one: 'Y'}, UAC: {aa: 'Tyr', long: 'Tirosina', one: 'Y'},
+        UAA: {aa: 'Stop', long: 'Stop', one: '*'}, UAG: {aa: 'Stop', long: 'Stop', one: '*'},
+        UGU: {aa: 'Cys', long: 'Cisteína', one: 'C'}, UGC: {aa: 'Cys', long: 'Cisteína', one: 'C'},
+        UGA: {aa: 'Stop', long: 'Stop', one: '*'}, UGG: {aa: 'Trp', long: 'Triptófano', one: 'W'},
 
-    <div class="grid" id="grid" aria-label="Visualización de la secuencia por bases"></div>
-  </section>
+        CUU: {aa: 'Leu', long: 'Leucina', one: 'L'}, CUC: {aa: 'Leu', long: 'Leucina', one: 'L'},
+        CUA: {aa: 'Leu', long: 'Leucina', one: 'L'}, CUG: {aa: 'Leu', long: 'Leucina', one: 'L'},
+        CCU: {aa: 'Pro', long: 'Prolina', one: 'P'}, CCC: {aa: 'Pro', long: 'Prolina', one: 'P'},
+        CCA: {aa: 'Pro', long: 'Prolina', one: 'P'}, CCG: {aa: 'Pro', long: 'Prolina', one: 'P'},
+        CAU: {aa: 'His', long: 'Histidina', one: 'H'}, CAC: {aa: 'His', long: 'Histidina', one: 'H'},
+        CAA: {aa: 'Gln', long: 'Glutamina', one: 'Q'}, CAG: {aa: 'Gln', long: 'Glutamina', one: 'Q'},
+        CGU: {aa: 'Arg', long: 'Arginina', one: 'R'}, CGC: {aa: 'Arg', long: 'Arginina', one: 'R'},
+        CGA: {aa: 'Arg', long: 'Arginina', one: 'R'}, CGG: {aa: 'Arg', long: 'Arginina', one: 'R'},
 
-  <section class="card">
-    <label>Visualizador</label>
-    <canvas id="scope"></canvas>
+        AUU: {aa: 'Ile', long: 'Isoleucina', one: 'I'}, AUC: {aa: 'Ile', long: 'Isoleucina', one: 'I'},
+        AUA: {aa: 'Ile', long: 'Isoleucina', one: 'I'}, AUG: {aa: 'Met', long: 'Metionina (Start)', one: 'M'},
+        ACU: {aa: 'Thr', long: 'Treonina', one: 'T'}, ACC: {aa: 'Thr', long: 'Treonina', one: 'T'},
+        ACA: {aa: 'Thr', long: 'Treonina', one: 'T'}, ACG: {aa: 'Thr', long: 'Treonina', one: 'T'},
+        AAU: {aa: 'Asn', long: 'Asparagina', one: 'N'}, AAC: {aa: 'Asn', long: 'Asparagina', one: 'N'},
+        AAA: {aa: 'Lys', long: 'Lisina', one: 'K'}, AAG: {aa: 'Lys', long: 'Lisina', one: 'K'},
+        AGU: {aa: 'Ser', long: 'Serina', one: 'S'}, AGC: {aa: 'Ser', long: 'Serina', one: 'S'},
+        AGA: {aa: 'Arg', long: 'Arginina', one: 'R'}, AGG: {aa: 'Arg', long: 'Arginina', one: 'R'},
 
-    <div class="card" style="margin-top:12px; background:#0b1219">
-      <h3 style="margin:6px 0 6px; font-size:16px">Codones detectados</h3>
-      <div id="codonList" class="codons"></div>
-      <details>
-        <summary>Tabla interactiva del código genético (64 codones)</summary>
-        <div id="codonTable" class="codon-table"></div>
-      </details>
-    </div>
-  </section>
-</div>
+        GUU: {aa: 'Val', long: 'Valina', one: 'V'}, GUC: {aa: 'Val', long: 'Valina', one: 'V'},
+        GUA: {aa: 'Val', long: 'Valina', one: 'V'}, GUG: {aa: 'Val', long: 'Valina', one: 'V'},
+        GCU: {aa: 'Ala', long: 'Alanina', one: 'A'}, GCC: {aa: 'Ala', long: 'Alanina', one: 'A'},
+        GCA: {aa: 'Ala', long: 'Alanina', one: 'A'}, GCG: {aa: 'Ala', long: 'Alanina', one: 'A'},
+        GAU: {aa: 'Asp', long: 'Ácido aspártico', one: 'D'}, GAC: {aa: 'Asp', long: 'Ácido aspártico', one: 'D'},
+        GAA: {aa: 'Glu', long: 'Ácido glutámico', one: 'E'}, GAG: {aa: 'Glu', long: 'Ácido glutámico', one: 'E'},
+        GGU: {aa: 'Gly', long: 'Glicina', one: 'G'}, GGC: {aa: 'Gly', long: 'Glicina', one: 'G'},
+        GGA: {aa: 'Gly', long: 'Glicina', one: 'G'}, GGG: {aa: 'Gly', long: 'Glicina', one: 'G'}
+      };
 
-<footer>Hecho con Web Audio API. Cada tarjeta de codón reproduce su sonido.</footer>
-
-<script>
-(()=> {
-  // ====== Mapeo genético (RNA) ======
-  // aa: nombre corto, long: nombre, one: 1 letra
-  const CODON = {
-    UUU:{aa:'Phe',long:'Fenilalanina',one:'F'}, UUC:{aa:'Phe',long:'Fenilalanina',one:'F'},
-    UUA:{aa:'Leu',long:'Leucina',one:'L'}, UUG:{aa:'Leu',long:'Leucina',one:'L'},
-    UCU:{aa:'Ser',long:'Serina',one:'S'}, UCC:{aa:'Ser',long:'Serina',one:'S'},
-    UCA:{aa:'Ser',long:'Serina',one:'S'}, UCG:{aa:'Ser',long:'Serina',one:'S'},
-    UAU:{aa:'Tyr',long:'Tirosina',one:'Y'}, UAC:{aa:'Tyr',long:'Tirosina',one:'Y'},
-    UAA:{aa:'Stop',long:'Stop',one:'*'}, UAG:{aa:'Stop',long:'Stop',one:'*'},
-    UGU:{aa:'Cys',long:'Cisteína',one:'C'}, UGC:{aa:'Cys',long:'Cisteína',one:'C'},
-    UGA:{aa:'Stop',long:'Stop',one:'*'}, UGG:{aa:'Trp',long:'Triptófano',one:'W'},
-
-    CUU:{aa:'Leu',long:'Leucina',one:'L'}, CUC:{aa:'Leu',long:'Leucina',one:'L'},
-    CUA:{aa:'Leu',long:'Leucina',one:'L'}, CUG:{aa:'Leu',long:'Leucina',one:'L'},
-    CCU:{aa:'Pro',long:'Prolina',one:'P'}, CCC:{aa:'Pro',long:'Prolina',one:'P'},
-    CCA:{aa:'Pro',long:'Prolina',one:'P'}, CCG:{aa:'Pro',long:'Prolina',one:'P'},
-    CAU:{aa:'His',long:'Histidina',one:'H'}, CAC:{aa:'His',long:'Histidina',one:'H'},
-    CAA:{aa:'Gln',long:'Glutamina',one:'Q'}, CAG:{aa:'Gln',long:'Glutamina',one:'Q'},
-    CGU:{aa:'Arg',long:'Arginina',one:'R'}, CGC:{aa:'Arg',long:'Arginina',one:'R'},
-    CGA:{aa:'Arg',long:'Arginina',one:'R'}, CGG:{aa:'Arg',long:'Arginina',one:'R'},
-
-    AUU:{aa:'Ile',long:'Isoleucina',one:'I'}, AUC:{aa:'Ile',long:'Isoleucina',one:'I'},
-    AUA:{aa:'Ile',long:'Isoleucina',one:'I'}, AUG:{aa:'Met',long:'Metionina (Start)',one:'M'},
-    ACU:{aa:'Thr',long:'Treonina',one:'T'}, ACC:{aa:'Thr',long:'Treonina',one:'T'},
-    ACA:{aa:'Thr',long:'Treonina',one:'T'}, ACG:{aa:'Thr',long:'Treonina',one:'T'},
-    AAU:{aa:'Asn',long:'Asparagina',one:'N'}, AAC:{aa:'Asn',long:'Asparagina',one:'N'},
-    AAA:{aa:'Lys',long:'Lisina',one:'K'}, AAG:{aa:'Lys',long:'Lisina',one:'K'},
-    AGU:{aa:'Ser',long:'Serina',one:'S'}, AGC:{aa:'Ser',long:'Serina',one:'S'},
-    AGA:{aa:'Arg',long:'Arginina',one:'R'}, AGG:{aa:'Arg',long:'Arginina',one:'R'},
-
-    GUU:{aa:'Val',long:'Valina',one:'V'}, GUC:{aa:'Val',long:'Valina',one:'V'},
-    GUA:{aa:'Val',long:'Valina',one:'V'}, GUG:{aa:'Val',long:'Valina',one:'V'},
-    GCU:{aa:'Ala',long:'Alanina',one:'A'}, GCC:{aa:'Ala',long:'Alanina',one:'A'},
-    GCA:{aa:'Ala',long:'Alanina',one:'A'}, GCG:{aa:'Ala',long:'Alanina',one:'A'},
-    GAU:{aa:'Asp',long:'Ácido aspártico',one:'D'}, GAC:{aa:'Asp',long:'Ácido aspártico',one:'D'},
-    GAA:{aa:'Glu',long:'Ácido glutámico',one:'E'}, GAG:{aa:'Glu',long:'Ácido glutámico',one:'E'},
-    GGU:{aa:'Gly',long:'Glicina',one:'G'}, GGC:{aa:'Gly',long:'Glicina',one:'G'},
-    GGA:{aa:'Gly',long:'Glicina',one:'G'}, GGG:{aa:'Gly',long:'Glicina',one:'G'}
-  };
-
-  // ====== Utilidades musicales ======
-  const noteIndex = {C:0,"C#":1,D:2,"D#":3,E:4,F:5,"F#":6,G:7,"G#":8,A:9,"A#":10,B:11};
-  const scales = {
-    major:[0,2,4,5,7,9,11],
-    minor:[0,2,3,5,7,8,10],
-    pentatonic:[0,2,4,7,9],
-    chromatic:Array.from({length:12},(_,i)=>i)
-  };
-  const baseDegreeIndex = { G:0, U:1, A:2, C:4 }; // grados 1,2,3,5 aprox
-  function midiToFreq(m){ return 440 * Math.pow(2,(m-69)/12); }
-  function rootMidi(key="C", oct=0){ return 60 + noteIndex[key] + (oct*12); }
-  function baseToFreq(b,key,scale,oct){
-    const scaleArr = scales[scale] || scales.major;
-    const degIdx = baseDegreeIndex[b];
-    const degree = scaleArr[degIdx % scaleArr.length];
-    const extraOct = (degIdx >= scaleArr.length) ? 12 : 0;
-    return midiToFreq(rootMidi(key,oct)+degree+extraOct);
-  }
-
-  // sonido de un codón: arpegio rápido b1→b2→b3 + acorde final
-  function playCodonSound(codon,{wave='sine',key='C',scale='major',oct=0,dur=0.5}){
-    ensureAudio();
-    const b1=codon[0], b2=codon[1], b3=codon[2];
-    const f1=baseToFreq(b1,key,scale,oct);
-    const f2=baseToFreq(b2,key,scale,oct);
-    const f3=baseToFreq(b3,key,scale,oct);
-    // arpegio
-    playTone(f1, Math.max(.1, dur*0.33), wave);
-    setTimeout(()=>playTone(f2, Math.max(.1, dur*0.33), wave), dur*330);
-    setTimeout(()=>playTone(f3, Math.max(.1, dur*0.33), wave), dur*660);
-    // acorde suave al final (si no es STOP)
-    const info = CODON[codon];
-    if (info && info.aa!=='Stop'){
-      setTimeout(()=>{
-        playHarm(f1,1.00, dur*0.6, wave, 0.7);
-        playHarm(f2,1.00, dur*0.6, wave, 0.5);
-        playHarm(f3,1.00, dur*0.6, wave, 0.5);
-      }, dur*700);
-    }else{
-      // STOP ⇒ caída
-      setTimeout(()=>{
-        playTone(f3*3/2, .16, 'triangle');
-        setTimeout(()=>playTone(f1, .16, 'triangle'), 120);
-      }, dur*650);
-    }
-  }
-
-  // ====== Audio Graph + visualizador ======
-  let audioCtx=null, masterGain, analyser;
-  function ensureAudio(){
-    if (audioCtx) return;
-    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    masterGain = audioCtx.createGain(); masterGain.gain.value = 0.9;
-    analyser = audioCtx.createAnalyser(); analyser.fftSize = 1024;
-    masterGain.connect(analyser); analyser.connect(audioCtx.destination);
-    startScope();
-  }
-  function env(duration){
-    const g = audioCtx.createGain(), now = audioCtx.currentTime;
-    const a = Math.min(.01, duration*.15), d=Math.min(.06,duration*.2), s=.85, r=Math.min(.12,duration*.25);
-    g.gain.setValueAtTime(0,now);
-    g.gain.linearRampToValueAtTime(1, now+a);
-    g.gain.linearRampToValueAtTime(s, now+a+d);
-    g.gain.linearRampToValueAtTime(0, now+duration+r);
-    return g;
-  }
-  function playTone(freq,duration,type){
-    const o = audioCtx.createOscillator(); o.type = type; o.frequency.value=freq;
-    o.connect(env(duration)).connect(masterGain);
-    o.start(); o.stop(audioCtx.currentTime+duration+.2);
-  }
-  function playHarm(freq,ratio,duration,type,gainMul=.6){
-    const o = audioCtx.createOscillator(); o.type=type; o.frequency.value=freq*ratio;
-    const e = env(duration); e.gain.value *= gainMul; o.connect(e).connect(masterGain);
-    o.start(); o.stop(audioCtx.currentTime+duration+.2);
-  }
-  function startScope(){
-    const canvas = document.getElementById('scope');
-    const ctx = canvas.getContext('2d');
-    function loop(){
-      const W = canvas.width = canvas.clientWidth * devicePixelRatio;
-      const H = canvas.height = canvas.clientHeight * devicePixelRatio;
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(data);
-      ctx.clearRect(0,0,W,H);
-      const grd = ctx.createLinearGradient(0,0,W,0);
-      grd.addColorStop(0,'#6ae3ff'); grd.addColorStop(1,'#9c7bff');
-      ctx.fillStyle = grd;
-      const barW = Math.max(2, (W/data.length)*1.5);
-      for(let i=0;i<data.length;i++){
-        const h = (data[i]/255)*(H*0.9);
-        const x = i*barW, y = H-h;
-        ctx.fillRect(x,y,barW*.9,h);
+      // ====== Utilidades musicales ======
+      const noteIndex = {C: 0, "C#": 1, D: 2, "D#": 3, E: 4, F: 5, "F#": 6, G: 7, "G#": 8, A: 9, "A#": 10, B: 11};
+      const scales = {
+        major: [0, 2, 4, 5, 7, 9, 11],
+        minor: [0, 2, 3, 5, 7, 8, 10],
+        pentatonic: [0, 2, 4, 7, 9],
+        chromatic: Array.from({length: 12}, (_, i) => i)
+      };
+      const baseDegreeIndex = {G: 0, U: 1, A: 2, C: 4};
+      
+      function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+      function rootMidi(key = "C", oct = 0) { return 60 + noteIndex[key] + (oct * 12); }
+      
+      function baseToFreq(b, key, scale, oct) {
+        const scaleArr = scales[scale] || scales.major;
+        const degIdx = baseDegreeIndex[b];
+        const degree = scaleArr[degIdx % scaleArr.length];
+        const extraOct = (degIdx >= scaleArr.length) ? 12 : 0;
+        return midiToFreq(rootMidi(key, oct) + degree + extraOct);
       }
-      requestAnimationFrame(loop);
-    }
-    loop();
-  }
 
-  // ====== Secuencia y UI ======
-  const dom = {
-    seq:document.getElementById('seq'),
-    grid:document.getElementById('grid'),
-    lenStat:document.getElementById('lenStat'),
-    countG:document.getElementById('countG'),
-    countU:document.getElementById('countU'),
-    countA:document.getElementById('countA'),
-    countC:document.getElementById('countC'),
-    invalid:document.getElementById('invalid'),
-    codonList:document.getElementById('codonList'),
-    codonTable:document.getElementById('codonTable'),
-    bpm:document.getElementById('bpm'),
-    bpmNum:document.getElementById('bpmNum'),
-    wave:document.getElementById('wave'),
-    root:document.getElementById('root'),
-    scale:document.getElementById('scale'),
-    octave:document.getElementById('octave'),
-    div:document.getElementById('div'),
-    play:document.getElementById('play'),
-    pause:document.getElementById('pause'),
-    stop:document.getElementById('stop'),
-    example:document.getElementById('example'),
-    clear:document.getElementById('clear'),
-    tests:[...document.querySelectorAll('.test')]
-  };
+      // sonido de un codón: arpegio rápido b1→b2→b3 + acorde final
+      function playCodonSound(codon, {wave = 'sine', key = 'C', scale = 'major', oct = 0, dur = 0.5}) {
+        ensureAudio();
+        const b1 = codon[0], b2 = codon[1], b3 = codon[2];
+        const f1 = baseToFreq(b1, key, scale, oct);
+        const f2 = baseToFreq(b2, key, scale, oct);
+        const f3 = baseToFreq(b3, key, scale, oct);
+        
+        // arpegio
+        playTone(f1, Math.max(.1, dur * 0.33), wave);
+        setTimeout(() => playTone(f2, Math.max(.1, dur * 0.33), wave), dur * 330);
+        setTimeout(() => playTone(f3, Math.max(.1, dur * 0.33), wave), dur * 660);
+        
+        // acorde suave al final (si no es STOP)
+        const info = CODON[codon];
+        if (info && info.aa !== 'Stop') {
+          setTimeout(() => {
+            playHarm(f1, 1.00, dur * 0.6, wave, 0.7);
+            playHarm(f2, 1.00, dur * 0.6, wave, 0.5);
+            playHarm(f3, 1.00, dur * 0.6, wave, 0.5);
+          }, dur * 700);
+        } else {
+          // STOP ⇒ caída
+          setTimeout(() => {
+            playTone(f3 * 3 / 2, .16, 'triangle');
+            setTimeout(() => playTone(f1, .16, 'triangle'), 120);
+          }, dur * 650);
+        }
+      }
 
-  let seqClean="", seqInvalid=0, playing=false, paused=false, stepTimer=null, codonIndex=0, codonArray=[];
+      // ====== Audio Graph + visualizador ======
+      let audioCtx = null, masterGain, analyser;
+      
+      function ensureAudio() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.9;
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 1024;
+        masterGain.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        startScope();
+      }
+      
+      function env(duration) {
+        const g = audioCtx.createGain(), now = audioCtx.currentTime;
+        const a = Math.min(.01, duration * .15), d = Math.min(.06, duration * .2), s = .85, r = Math.min(.12, duration * .25);
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(1, now + a);
+        g.gain.linearRampToValueAtTime(s, now + a + d);
+        g.gain.linearRampToValueAtTime(0, now + duration + r);
+        return g;
+      }
+      
+      function playTone(freq, duration, type) {
+        const o = audioCtx.createOscillator();
+        o.type = type;
+        o.frequency.value = freq;
+        o.connect(env(duration)).connect(masterGain);
+        o.start();
+        o.stop(audioCtx.currentTime + duration + .2);
+      }
+      
+      function playHarm(freq, ratio, duration, type, gainMul = .6) {
+        const o = audioCtx.createOscillator();
+        o.type = type;
+        o.frequency.value = freq * ratio;
+        const e = env(duration);
+        e.gain.value *= gainMul;
+        o.connect(e).connect(masterGain);
+        o.start();
+        o.stop(audioCtx.currentTime + duration + .2);
+      }
+      
+      function startScope() {
+        const canvas = document.getElementById('scope');
+        const ctx = canvas.getContext('2d');
+        
+        function loop() {
+          const W = canvas.width = canvas.clientWidth * devicePixelRatio;
+          const H = canvas.height = canvas.clientHeight * devicePixelRatio;
+          const data = new Uint8Array(analyser.frequencyBinCount);
+          analyser.getByteFrequencyData(data);
+          
+          ctx.clearRect(0, 0, W, H);
+          
+          // Create gradient for bars
+          const grd = ctx.createLinearGradient(0, 0, W, 0);
+          grd.addColorStop(0, '#0ea5e9');
+          grd.addColorStop(1, '#8b5cf6');
+          ctx.fillStyle = grd;
+          
+          const barW = Math.max(2, (W / data.length) * 1.5);
+          for (let i = 0; i < data.length; i++) {
+            const h = (data[i] / 255) * (H * 0.9);
+            const x = i * barW, y = H - h;
+            ctx.fillRect(x, y, barW * .9, h);
+          }
+          requestAnimationFrame(loop);
+        }
+        loop();
+      }
 
-  function sanitize(raw){
-    const up=(raw||"").toUpperCase().replace(/\s+/g,'');
-    let clean="", invalid=0;
-    for(const ch of up){
-      if("GUAC".includes(ch)) clean+=ch; else if(ch) invalid++;
-    }
-    return [clean, invalid];
-  }
+      // ====== Secuencia y UI ======
+      const dom = {
+        seq: document.getElementById('seq'),
+        grid: document.getElementById('grid'),
+        lenStat: document.getElementById('lenStat'),
+        countG: document.getElementById('countG'),
+        countU: document.getElementById('countU'),
+        countA: document.getElementById('countA'),
+        countC: document.getElementById('countC'),
+        invalid: document.getElementById('invalid'),
+        codonList: document.getElementById('codonList'),
+        codonTable: document.getElementById('codonTable'),
+        bpm: document.getElementById('bpm'),
+        bpmValue: document.getElementById('bpmValue'),
+        wave: document.getElementById('wave'),
+        root: document.getElementById('root'),
+        scale: document.getElementById('scale'),
+        octave: document.getElementById('octave'),
+        div: document.getElementById('div'),
+        play: document.getElementById('play'),
+        pause: document.getElementById('pause'),
+        stop: document.getElementById('stop'),
+        example: document.getElementById('example'),
+        clear: document.getElementById('clear'),
+        tests: [...document.querySelectorAll('.test')]
+      };
 
-  function updateStats(){
-    dom.lenStat.textContent = `Longitud limpia: ${seqClean.length}`;
-    dom.countG.textContent = `G: ${[...seqClean].filter(c=>c==='G').length}`;
-    dom.countU.textContent = `U: ${[...seqClean].filter(c=>c==='U').length}`;
-    dom.countA.textContent = `A: ${[...seqClean].filter(c=>c==='A').length}`;
-    dom.countC.textContent = `C: ${[...seqClean].filter(c=>c==='C').length}`;
-    dom.invalid.textContent = `Inválidos: ${seqInvalid}`;
-  }
+      let seqClean = "", seqInvalid = 0, playing = false, paused = false, stepTimer = null, codonIndex = 0, codonArray = [];
 
-  function renderBaseGrid(){
-    dom.grid.innerHTML="";
-    const frag = document.createDocumentFragment();
-    [...seqClean].forEach((b,i)=>{
-      const d=document.createElement('div');
-      d.className='cell'; d.dataset.b=b; d.dataset.i=i; d.textContent=b;
-      frag.appendChild(d);
-    });
-    dom.grid.appendChild(frag);
-  }
+      function sanitize(raw) {
+        const up = (raw || "").toUpperCase().replace(/\s+/g, '');
+        let clean = "", invalid = 0;
+        for (const ch of up) {
+          if ("GUAC".includes(ch)) clean += ch; else if (ch) invalid++;
+        }
+        return [clean, invalid];
+      }
 
-  function splitCodons(){
-    codonArray = [];
-    for(let i=0;i+2<seqClean.length;i+=3){
-      codonArray.push(seqClean.slice(i,i+3));
-    }
-  }
+      function updateStats() {
+        dom.lenStat.textContent = seqClean.length;
+        dom.countG.textContent = [...seqClean].filter(c => c === 'G').length;
+        dom.countU.textContent = [...seqClean].filter(c => c === 'U').length;
+        dom.countA.textContent = [...seqClean].filter(c => c === 'A').length;
+        dom.countC.textContent = [...seqClean].filter(c => c === 'C').length;
+        dom.invalid.textContent = seqInvalid;
+      }
 
-  function renderCodonList(){
-    dom.codonList.innerHTML="";
-    const frag = document.createDocumentFragment();
-    codonArray.forEach((c,idx)=>{
-      const info = CODON[c] || {aa:'?',long:'Desconocido',one:'?'};
-      const card = document.createElement('div');
-      card.className='codon-card';
-      card.dataset.idx = idx;
-      const left = document.createElement('div');
-      left.innerHTML = `<div class="codon-triplet">${c}</div><div class="codon-name">${info.long}</div>`;
-      const right = document.createElement('div');
-      right.className = 'pill '+ (info.aa==='Stop'?'stop':'');
-      right.textContent = info.aa;
-      card.appendChild(left); card.appendChild(right);
-      card.addEventListener('click', ()=>{
-        playCodonSound(c, {wave:dom.wave.value, key:dom.root.value, scale:dom.scale.value, oct:Number(dom.octave.value), dur: stepDur()});
-        pulseCard(card);
+      function renderBaseGrid() {
+        dom.grid.innerHTML = "";
+        const frag = document.createDocumentFragment();
+        [...seqClean].forEach((b, i) => {
+          const d = document.createElement('div');
+          d.className = 'cell';
+          d.dataset.b = b;
+          d.dataset.i = i;
+          d.textContent = b;
+          frag.appendChild(d);
+        });
+        dom.grid.appendChild(frag);
+      }
+
+      function splitCodons() {
+        codonArray = [];
+        for (let i = 0; i + 2 < seqClean.length; i += 3) {
+          codonArray.push(seqClean.slice(i, i + 3));
+        }
+      }
+
+      function renderCodonList() {
+        dom.codonList.innerHTML = "";
+        const frag = document.createDocumentFragment();
+        codonArray.forEach((c, idx) => {
+          const info = CODON[c] || {aa: '?', long: 'Desconocido', one: '?'};
+          const card = document.createElement('div');
+          card.className = 'codon-card';
+          card.dataset.idx = idx;
+          
+          const left = document.createElement('div');
+          left.innerHTML = `
+            <div class="codon-triplet">${c}</div>
+            <div class="codon-name">${info.long}</div>
+          `;
+          
+          const right = document.createElement('div');
+          right.className = 'codon-aa ' + (info.aa === 'Stop' ? 'stop' : '');
+          right.textContent = info.aa;
+          
+          card.appendChild(left);
+          card.appendChild(right);
+          
+          card.addEventListener('click', () => {
+            playCodonSound(c, {
+              wave: dom.wave.value,
+              key: dom.root.value,
+              scale: dom.scale.value,
+              oct: Number(dom.octave.value),
+              dur: stepDur()
+            });
+            card.classList.add('pulse');
+            setTimeout(() => card.classList.remove('pulse'), 500);
+          });
+          
+          frag.appendChild(card);
+        });
+        dom.codonList.appendChild(frag);
+      }
+
+      function buildFullCodonTable() {
+        dom.codonTable.innerHTML = "";
+        const bases = ['U', 'C', 'A', 'G'];
+        const all = [];
+        for (const b1 of bases)
+          for (const b2 of bases)
+            for (const b3 of bases)
+              all.push(b1 + b2 + b3);
+              
+        const frag = document.createDocumentFragment();
+        for (const c of all) {
+          const info = CODON[c];
+          const t = document.createElement('div');
+          t.className = 'codon-tile';
+          t.innerHTML = `
+            <b>${c}</b>
+            <div class="amino-acid">${info.long}</div>
+            <div class="codon-aa ${info.aa === 'Stop' ? 'stop' : ''}">${info.aa}</div>
+          `;
+          t.addEventListener('click', () => {
+            playCodonSound(c, {
+              wave: dom.wave.value,
+              key: dom.root.value,
+              scale: dom.scale.value,
+              oct: Number(dom.octave.value),
+              dur: stepDur()
+            });
+            t.classList.add('pulse');
+            setTimeout(() => t.classList.remove('pulse'), 500);
+          });
+          frag.appendChild(t);
+        }
+        dom.codonTable.appendChild(frag);
+      }
+
+      function refresh() {
+        [seqClean, seqInvalid] = sanitize(dom.seq.value);
+        updateStats();
+        renderBaseGrid();
+        splitCodons();
+        renderCodonList();
+      }
+
+      // ====== Reproducción por codones ======
+      function stepDur() {
+        const bpm = Number(dom.bpm.value), div = Number(dom.div.value);
+        const quarter = 60 / bpm;
+        return quarter * div;
+      }
+      
+      function setActiveBaseRange(startIdx) {
+        const prev = dom.grid.querySelectorAll('.cell.active');
+        prev.forEach(e => e.classList.remove('active'));
+        for (let i = startIdx; i < startIdx + 3; i++) {
+          const el = dom.grid.querySelector(`.cell[data-i="${i}"]`);
+          if (el) el.classList.add('active');
+        }
+      }
+      
+      function toggleButtons() {
+        dom.play.disabled = playing && !paused;
+        dom.pause.disabled = !playing || paused;
+        dom.stop.disabled = !playing && !paused;
+      }
+      
+      function playSeq() {
+        if (!codonArray.length) return;
+        ensureAudio();
+        audioCtx.resume && audioCtx.resume();
+        playing = true;
+        paused = false;
+        codonIndex = 0;
+        toggleButtons();
+        
+        const step = () => {
+          if (!playing || paused) return;
+          if (codonIndex >= codonArray.length) {
+            stop();
+            return;
+          }
+          
+          const codon = codonArray[codonIndex];
+          playCodonSound(codon, {
+            wave: dom.wave.value,
+            key: dom.root.value,
+            scale: dom.scale.value,
+            oct: Number(dom.octave.value),
+            dur: stepDur()
+          });
+          
+          setActiveBaseRange(codonIndex * 3);
+          
+          // Pulso en la tarjeta correspondiente
+          const card = dom.codonList.querySelector(`.codon-card:nth-child(${codonIndex + 1})`);
+          if (card) {
+            card.classList.add('pulse');
+            setTimeout(() => card.classList.remove('pulse'), 500);
+          }
+          
+          codonIndex++;
+          stepTimer = setTimeout(step, stepDur() * 1000);
+        };
+        step();
+      }
+      
+      function pause() {
+        paused = true;
+        toggleButtons();
+      }
+      
+      function stop() {
+        playing = false;
+        paused = false;
+        codonIndex = 0;
+        clearTimeout(stepTimer);
+        const prev = dom.grid.querySelectorAll('.cell.active');
+        prev.forEach(e => e.classList.remove('active'));
+        toggleButtons();
+      }
+
+      // ====== Eventos ======
+      dom.seq.addEventListener('input', refresh);
+      
+      dom.example.addEventListener('click', () => {
+        dom.seq.value = `AUGGCUUUUAG GCUGCCGCA GGAUAA UGG UGUUGC UAA`.replace(/\s+/g, '');
+        refresh();
       });
-      frag.appendChild(card);
-    });
-    dom.codonList.appendChild(frag);
-  }
-
-  function pulseCard(card){
-    card.style.boxShadow='0 0 0 3px rgba(255,255,255,.3) inset';
-    setTimeout(()=>card.style.boxShadow='', 180);
-  }
-
-  function buildFullCodonTable(){
-    dom.codonTable.innerHTML="";
-    const bases=['U','C','A','G']; // orden clásico de la rueda
-    const all=[];
-    for(const b1 of bases) for(const b2 of bases) for(const b3 of bases) all.push(b1+b2+b3);
-    const frag=document.createDocumentFragment();
-    for(const c of all){
-      const info = CODON[c];
-      const t = document.createElement('div');
-      t.className='ctile';
-      t.innerHTML = `<b>${c}</b><br><span style="font-size:12px; color:var(--muted)">${info.long}</span><br><span class="pill ${info.aa==='Stop'?'stop':''}">${info.aa}</span>`;
-      t.addEventListener('click', ()=>{
-        playCodonSound(c, {wave:dom.wave.value, key:dom.root.value, scale:dom.scale.value, oct:Number(dom.octave.value), dur: stepDur()});
+      
+      dom.clear.addEventListener('click', () => {
+        dom.seq.value = '';
+        refresh();
       });
-      frag.appendChild(t);
-    }
-    dom.codonTable.appendChild(frag);
-  }
 
-  function refresh(){
-    [seqClean, seqInvalid] = sanitize(dom.seq.value);
-    updateStats(); renderBaseGrid(); splitCodons(); renderCodonList();
-  }
+      dom.bpm.addEventListener('input', () => {
+        dom.bpmValue.textContent = dom.bpm.value;
+      });
 
-  // ====== Reproducción por codones ======
-  function stepDur(){
-    const bpm=Number(dom.bpm.value), div=Number(dom.div.value);
-    const quarter=60/bpm; return quarter*div;
-  }
-  function setActiveBaseRange(startIdx){
-    const prev = dom.grid.querySelectorAll('.cell.active');
-    prev.forEach(e=>e.classList.remove('active'));
-    for(let i=startIdx;i<startIdx+3;i++){
-      const el = dom.grid.querySelector(`.cell[data-i="${i}"]`);
-      if (el) el.classList.add('active');
-    }
-  }
-  function toggleButtons(){
-    dom.play.disabled = playing && !paused;
-    dom.pause.disabled = !playing || paused;
-    dom.stop.disabled = !playing && !paused;
-  }
-  function playSeq(){
-    if (!codonArray.length) return;
-    ensureAudio(); audioCtx.resume && audioCtx.resume();
-    playing=true; paused=false; codonIndex=0; toggleButtons();
-    const step = ()=>{
-      if (!playing || paused) return;
-      if (codonIndex>=codonArray.length){ stop(); return; }
-      const codon = codonArray[codonIndex];
-      playCodonSound(codon, {wave:dom.wave.value, key:dom.root.value, scale:dom.scale.value, oct:Number(dom.octave.value), dur: stepDur()});
-      setActiveBaseRange(codonIndex*3);
-      // pulso en la tarjeta correspondiente
-      const card = dom.codonList.querySelector(`.codon-card:nth-child(${codonIndex+1})`);
-      if (card) pulseCard(card);
-      codonIndex++;
-      stepTimer = setTimeout(step, stepDur()*1000);
-    };
-    step();
-  }
-  function pause(){ paused=true; toggleButtons(); }
-  function stop(){
-    playing=false; paused=false; codonIndex=0; clearTimeout(stepTimer);
-    const prev = dom.grid.querySelectorAll('.cell.active'); prev.forEach(e=>e.classList.remove('active'));
-    toggleButtons();
-  }
+      dom.play.addEventListener('click', () => {
+        if (paused) {
+          paused = false;
+          toggleButtons();
+          playSeq();
+        } else {
+          playSeq();
+        }
+      });
+      
+      dom.pause.addEventListener('click', pause);
+      dom.stop.addEventListener('click', stop);
 
-  // ====== Eventos ======
-  dom.seq.addEventListener('input', refresh);
-  dom.example.addEventListener('click', ()=>{
-    dom.seq.value = `AUGGCUUUUAG GCUGCCGCA GGAUAA UGG UGUUGC UAA`.replace(/\s+/g,'');
-    refresh();
-  });
-  dom.clear.addEventListener('click', ()=>{dom.seq.value=''; refresh();});
+      dom.tests.forEach(btn => {
+        btn.addEventListener('click', () => {
+          ensureAudio();
+          const b = btn.dataset.b;
+          const f = baseToFreq(b, dom.root.value, dom.scale.value, Number(dom.octave.value));
+          playTone(f, 0.25, dom.wave.value);
+        });
+      });
 
-  [dom.bpm, dom.bpmNum].forEach(el=>{
-    el.addEventListener('input',(e)=>{ if(e.target===dom.bpm) dom.bpmNum.value=dom.bpm.value; else dom.bpm.value=dom.bpmNum.value; });
-  });
+      // Acceso directo espacio play/pausa
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !e.repeat) {
+          e.preventDefault();
+          if (!playing || paused) dom.play.click();
+          else dom.pause.click();
+        }
+      });
 
-  dom.play.addEventListener('click', ()=>{ if (paused){ paused=false; toggleButtons(); playSeq(); } else { playSeq(); }});
-  dom.pause.addEventListener('click', pause);
-  dom.stop.addEventListener('click', stop);
-
-  dom.tests.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      ensureAudio();
-      const b=btn.dataset.b;
-      const f=baseToFreq(b, dom.root.value, dom.scale.value, Number(dom.octave.value));
-      playTone(f, 0.25, dom.wave.value);
-    });
-  });
-
-  // Acceso directo espacio play/pausa
-  document.addEventListener('keydown',(e)=>{
-    if (e.code==='Space' && !e.repeat){
-      e.preventDefault();
-      if (!playing || paused) dom.play.click(); else dom.pause.click();
-    }
-  });
-
-  // Inicial
-  refresh(); buildFullCodonTable(); toggleButtons();
-})();
-</script>
+      // Inicialización
+      refresh();
+      buildFullCodonTable();
+      toggleButtons();
+      dom.bpmValue.textContent = dom.bpm.value;
+    })();
+  </script>
 </body>
 </html>
