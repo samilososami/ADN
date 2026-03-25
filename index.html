@@ -3,1360 +3,902 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>RNA → Música por Codones | Bioinformática Musical</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>RNA Synthesia | Laboratorio Bioinformático</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-primary: #0a1929;
-    --bg-secondary: #102a43;
-    --bg-card: #132f4c;
-    --bg-accent: #1e4a76;
-    --text-primary: #e6f7ff;
-    --text-secondary: #b3d9ff;
-    --text-muted: #7fbfff;
-    --accent-primary: #00c8ff;
-    --accent-secondary: #00a8cc;
-    --accent-tertiary: #0077b6;
-    --success: #4caf50;
-    --warning: #ff9800;
-    --danger: #f44336;
-    --G: #4caf50;
-    --U: #ff9800;
-    --A: #f44336;
-    --C: #2196f3;
-    --helix-color: rgba(0, 200, 255, 0.3);
-    --border-radius: 12px;
-    --transition: all 0.3s ease;
+    --bg-base: #050505;
+    --bg-surface: rgba(15, 20, 25, 0.6);
+    --bg-surface-hover: rgba(25, 30, 40, 0.8);
+    --primary: #00f0ff;
+    --primary-glow: rgba(0, 240, 255, 0.4);
+    --secondary: #7000ff;
+    --mutation: #ff0055; /* Neo-pink for mutations */
+    --mutation-glow: rgba(255, 0, 85, 0.4);
+    --text-main: #f0f4f8;
+    --text-muted: #8b9bb4;
+    
+    /* Bases Colors */
+    --base-G: #10b981; 
+    --base-U: #f59e0b; 
+    --base-A: #ef4444; 
+    --base-C: #3b82f6; 
+    
+    /* AA Properties Colors */
+    --prop-nonpolar: #10b981;
+    --prop-polar: #3b82f6;
+    --prop-basic: #8b5cf6;
+    --prop-acidic: #ef4444;
+    --prop-stop: #64748b;
+
+    --radius-lg: 16px;
+    --radius-md: 10px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-  html, body {
-    height: 100%;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    line-height: 1.6;
-    color: var(--text-primary);
-    background: var(--bg-primary);
-    overflow-x: hidden;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    display: flex;
-    flex-direction: column;
-    background: 
-      radial-gradient(ellipse at 10% 20%, rgba(0, 200, 255, 0.1) 0%, transparent 50%),
-      radial-gradient(ellipse at 90% 80%, rgba(0, 119, 182, 0.1) 0%, transparent 50%),
-      var(--bg-primary);
-    position: relative;
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(112, 0, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.08) 0%, transparent 50%);
+    background-attachment: fixed;
   }
 
-  /* DNA Helix Background */
-  .dna-helix {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    opacity: 0.1;
-    pointer-events: none;
-  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-base); }
+  ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-  .helix-line {
-    position: absolute;
-    width: 2px;
-    height: 100%;
-    background: linear-gradient(to bottom, transparent, var(--helix-color), transparent);
-    left: 20%;
-    animation: float 15s infinite linear;
-  }
-
-  .helix-line:nth-child(2) {
-    left: 40%;
-    animation-delay: -5s;
-  }
-
-  .helix-line:nth-child(3) {
-    left: 60%;
-    animation-delay: -10s;
-  }
-
-  .helix-line:nth-child(4) {
-    left: 80%;
-    animation-delay: -7s;
-  }
-
-  .helix-node {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    background: var(--accent-primary);
-    border-radius: 50%;
-    left: calc(20% - 2px);
-    top: 10%;
-    animation: helixMove 8s infinite ease-in-out;
-  }
-
-  .helix-node:nth-child(5) {
-    left: calc(40% - 2px);
-    animation-delay: -2s;
-  }
-
-  .helix-node:nth-child(6) {
-    left: calc(60% - 2px);
-    animation-delay: -4s;
-  }
-
-  .helix-node:nth-child(7) {
-    left: calc(80% - 2px);
-    animation-delay: -6s;
-  }
-
-  @keyframes float {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
-  }
-
-  @keyframes helixMove {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(20px); }
-  }
-
-  .container {
-    max-width: 1400px;
+  .app-container {
+    max-width: 1600px;
     margin: 0 auto;
-    padding: 0 20px;
-    width: 100%;
-  }
-
-  /* Header */
-  header {
-    padding: 2.5rem 0 1.5rem;
-    text-align: center;
-    background: rgba(10, 25, 41, 0.85);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(0, 200, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-      radial-gradient(circle at 20% 30%, rgba(0, 200, 255, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(0, 119, 182, 0.05) 0%, transparent 50%);
-    z-index: -1;
-  }
-
-  .dna-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    display: inline-block;
-    animation: pulse 2s infinite;
-  }
-
-  header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    font-family: 'Space Grotesk', sans-serif;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    position: relative;
-  }
-
-  header h1::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
-  }
-
-  header p {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-    max-width: 600px;
-    margin: 1rem auto 0;
-  }
-
-  /* Main Layout */
-  .main-content {
+    padding: 2rem;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 350px 1fr;
     gap: 2rem;
-    padding: 2rem 0;
-    flex: 1;
   }
 
   @media (max-width: 1024px) {
-    .main-content {
-      grid-template-columns: 1fr;
-    }
+    .app-container { grid-template-columns: 1fr; padding: 1rem; }
   }
 
-  /* Cards */
-  .card {
-    background: rgba(19, 47, 76, 0.7);
-    border-radius: var(--border-radius);
+  /* Panels */
+  .panel {
+    background: var(--bg-surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
     padding: 1.5rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(0, 200, 255, 0.1);
-    transition: var(--transition);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
   }
 
-  .card::before {
+  .panel::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary));
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
   }
 
-  .card:hover {
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-    transform: translateY(-2px);
-    border-color: rgba(0, 200, 255, 0.2);
-  }
-
-  .card-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgba(0, 200, 255, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .card-icon {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 200, 255, 0.1);
-    border-radius: 8px;
-    color: var(--accent-primary);
-    font-size: 1.2rem;
-  }
-
-  .card-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-
-  .card-subtitle {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-  }
-
-  /* Form Controls */
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary);
+  h1 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     margin-bottom: 0.5rem;
   }
 
-  textarea {
-    width: 100%;
-    min-height: 150px;
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(0, 200, 255, 0.2);
-    background: rgba(10, 25, 41, 0.5);
-    color: var(--text-primary);
-    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    resize: vertical;
-    transition: var(--transition);
-  }
-
-  textarea:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(0, 200, 255, 0.2);
-  }
-
-  .input-group {
+  h2 { font-size: 1.2rem; font-weight: 600; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  
+  /* Tabs System */
+  .tabs-header {
     display: flex;
     gap: 1rem;
-    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 1rem;
   }
 
-  select, input[type="number"] {
-    padding: 0.75rem 1rem;
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(0, 200, 255, 0.2);
-    background: rgba(10, 25, 41, 0.5);
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    transition: var(--transition);
-  }
-
-  select:focus, input[type="number"]:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(0, 200, 255, 0.2);
-  }
-
-  input[type="range"] {
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, 0.1);
-    outline: none;
-    -webkit-appearance: none;
-  }
-
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--accent-primary);
+  .ws-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    position: relative;
   }
+
+  .ws-tab:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
+  
+  .ws-tab.active {
+    color: var(--primary);
+    background: rgba(0, 240, 255, 0.1);
+    box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.1);
+  }
+
+  .ws-content { display: none; animation: fadeIn 0.3s ease; }
+  .ws-content.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Controls */
+  .control-group { margin-bottom: 1.5rem; }
+  .control-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+  
+  input[type="range"] { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; -webkit-appearance: none; margin: 10px 0; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 0 10px var(--primary-glow); transition: var(--transition); }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  select, .input-text { width: 100%; padding: 0.8rem 1rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; outline: none; transition: var(--transition); appearance: none; }
+  select:focus, .input-text:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
+
+  .flex-row { display: flex; gap: 1rem; }
+  .flex-row > * { flex: 1; }
+
+  /* Editor Area */
+  .editor-wrapper { position: relative; margin-bottom: 2rem; }
+  #rna-input { width: 100%; height: 200px; padding: 1.5rem; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); color: transparent; caret-color: var(--text-main); font-family: 'Fira Code', monospace; font-size: 1.2rem; line-height: 1.6; resize: vertical; outline: none; z-index: 2; position: relative; letter-spacing: 2px; }
+  #rna-visual { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 1.5rem; font-family: 'Fira Code', monospace; font-size: 1.2rem; line-height: 1.6; pointer-events: none; z-index: 1; overflow-wrap: break-word; overflow-y: auto; letter-spacing: 2px; }
+
+  .base-G { color: var(--base-G); text-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+  .base-U { color: var(--base-U); text-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+  .base-A { color: var(--base-A); text-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+  .base-C { color: var(--base-C); text-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
+  
+  .ribosome-active { background: rgba(255, 255, 255, 0.15); border-radius: 4px; box-shadow: 0 0 0 2px var(--primary); animation: pulse_border 0.5s infinite alternate; }
+  @keyframes pulse_border { from { box-shadow: 0 0 0 1px var(--primary); } to { box-shadow: 0 0 10px 2px var(--primary); } }
+
+  /* Canvas Visualizer */
+  #visualizer { width: 100%; height: 300px; border-radius: var(--radius-lg); background: #000; margin-bottom: 2rem; border: 1px solid rgba(255,255,255,0.05); }
 
   /* Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius);
-    border: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: var(--transition);
-    gap: 0.5rem;
-    font-family: 'Space Grotesk', sans-serif;
-    position: relative;
-    overflow: hidden;
-  }
+  .btn-group { display: flex; gap: 1rem; margin-top: 1rem; }
+  .btn { flex: 1; padding: 1rem; border: none; border-radius: var(--radius-md); font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: var(--transition); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .btn-play { background: linear-gradient(135deg, var(--primary), #0077ff); color: #000; box-shadow: 0 0 20px var(--primary-glow); }
+  .btn-play:hover { transform: translateY(-2px); box-shadow: 0 10px 30px var(--primary-glow); filter: brightness(1.2); }
+  .btn-stop { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+  .btn-stop:hover { background: rgba(239, 68, 68, 0.2); }
+  .btn-mut { background: rgba(255, 0, 85, 0.15); color: var(--mutation); border: 1px solid var(--mutation); }
+  .btn-mut:hover { background: var(--mutation); color: white; box-shadow: 0 0 20px var(--mutation-glow); }
 
-  .btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-  }
+  /* Stats Grid */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: rgba(0,0,0,0.4); padding: 1rem; border-radius: var(--radius-md); text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+  .stat-val { font-size: 1.5rem; font-weight: 700; margin-top: 0.5rem; font-family: 'Fira Code', monospace; }
 
-  .btn:hover::before {
-    left: 100%;
-  }
+  /* Amino Acid Grid */
+  .aa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; max-height: 300px; overflow-y: auto; padding-right: 10px; }
+  .aa-card { background: rgba(0,0,0,0.4); border-radius: var(--radius-md); padding: 1rem; border-left: 4px solid transparent; transition: var(--transition); position: relative; }
+  .aa-card.active { transform: scale(1.05); background: rgba(255,255,255,0.1); z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .aa-codon { font-family: 'Fira Code', monospace; font-size: 1.2rem; font-weight: 700; letter-spacing: 2px; }
+  .aa-name { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+  .aa-prop { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-top: 0.5rem; }
 
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 200, 255, 0.3);
-  }
+  .prop-nonpolar { border-color: var(--prop-nonpolar); }
+  .prop-nonpolar .aa-prop { background: rgba(16, 185, 129, 0.1); color: var(--prop-nonpolar); }
+  .prop-polar { border-color: var(--prop-polar); }
+  .prop-polar .aa-prop { background: rgba(59, 130, 246, 0.1); color: var(--prop-polar); }
+  .prop-basic { border-color: var(--prop-basic); }
+  .prop-basic .aa-prop { background: rgba(139, 92, 246, 0.1); color: var(--prop-basic); }
+  .prop-acidic { border-color: var(--prop-acidic); }
+  .prop-acidic .aa-prop { background: rgba(239, 68, 68, 0.1); color: var(--prop-acidic); }
+  .prop-stop { border-color: var(--prop-stop); }
+  .prop-stop .aa-prop { background: rgba(100, 116, 139, 0.1); color: var(--prop-stop); }
 
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 200, 255, 0.4);
-  }
+  /* Mutations UI */
+  .mutation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+  .mutation-card { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 1.2rem; display: flex; flex-direction: column; gap: 0.5rem; transition: var(--transition); }
+  .mutation-card:hover { border-color: rgba(255, 0, 85, 0.3); transform: translateY(-2px); }
+  .mutation-header { display: flex; justify-content: space-between; align-items: center; }
+  .mutation-title { font-weight: 700; color: var(--text-main); font-size: 1.1rem; }
+  .info-btn { background: rgba(255,255,255,0.1); color: var(--text-muted); border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: var(--transition); }
+  .info-btn:hover { background: var(--primary); color: #000; }
+  
+  .diff-viewer { background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; max-height: 400px; overflow-y: auto; }
+  .diff-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; font-family: 'Fira Code', monospace; font-size: 1.1rem; }
+  .diff-label { width: 100px; color: var(--text-muted); font-family: 'Outfit', sans-serif; font-size: 0.9rem; text-transform: uppercase; }
+  .diff-seq { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+  .codon-box { padding: 4px 6px; border-radius: 4px; background: rgba(255,255,255,0.05); text-align: center; }
+  .codon-box.mutated { background: rgba(255, 0, 85, 0.2); border: 1px solid var(--mutation); color: #fff; text-shadow: 0 0 5px var(--mutation); animation: pulse_border 1s infinite alternate; }
+  .codon-aa { display: block; font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
 
-  .btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
-    border: 1px solid rgba(0, 200, 255, 0.2);
-  }
+  /* Modals */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: var(--transition); }
+  .modal-overlay.active { opacity: 1; pointer-events: all; }
+  .modal-box { background: var(--bg-surface); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: var(--radius-lg); padding: 2rem; max-width: 500px; width: 90%; transform: translateY(20px); transition: var(--transition); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+  .modal-overlay.active .modal-box { transform: translateY(0); }
+  .modal-title { font-size: 1.5rem; color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .modal-close { margin-top: 1.5rem; width: 100%; background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.8rem; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; font-family: 'Outfit'; transition: var(--transition); }
+  .modal-close:hover { background: rgba(255,255,255,0.2); }
 
-  .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(0, 200, 255, 0.3);
-  }
-
-  .btn-warning {
-    background: var(--warning);
-    color: white;
-  }
-
-  .btn-danger {
-    background: var(--danger);
-    color: white;
-  }
-
-  .btn-group {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  /* Stats */
-  .stats {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-top: 1rem;
-  }
-
-  .stat {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    font-size: 0.875rem;
-    border: 1px solid rgba(0, 200, 255, 0.1);
-  }
-
-  .stat-value {
-    font-weight: 700;
-  }
-
-  .stat-G { color: var(--G); }
-  .stat-U { color: var(--U); }
-  .stat-A { color: var(--A); }
-  .stat-C { color: var(--C); }
-
-  /* Grid Visualization */
-  .grid-container {
-    margin-top: 1rem;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
-    gap: 6px;
-    max-height: 240px;
-    overflow-y: auto;
-    padding: 1rem;
-    background: rgba(10, 25, 41, 0.5);
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(0, 200, 255, 0.1);
-  }
-
-  .cell {
-    aspect-ratio: 1/1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 0.75rem;
-    color: rgba(0, 0, 0, 0.8);
-    transition: var(--transition);
-    user-select: none;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .cell::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .cell:hover::before {
-    opacity: 1;
-  }
-
-  .cell[data-b="G"] { background: var(--G); }
-  .cell[data-b="U"] { background: var(--U); }
-  .cell[data-b="A"] { background: var(--A); }
-  .cell[data-b="C"] { background: var(--C); }
-
-  .cell.active {
-    transform: scale(1.1);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7);
-    z-index: 1;
-  }
-
-  /* Codons List */
-  .codons-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-
-  .codon-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    cursor: pointer;
-    transition: var(--transition);
-    border: 1px solid transparent;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .codon-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--accent-primary);
-    transform: scaleY(0);
-    transition: transform 0.3s;
-  }
-
-  .codon-card:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-2px);
-    border-color: rgba(0, 200, 255, 0.2);
-  }
-
-  .codon-card:hover::before {
-    transform: scaleY(1);
-  }
-
-  .codon-triplet {
-    font-family: 'Fira Code', monospace;
-    font-weight: 700;
-    font-size: 1.25rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .codon-name {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-  }
-
-  .codon-aa {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  .codon-aa.stop {
-    background: rgba(244, 67, 54, 0.2);
-    color: var(--danger);
-  }
-
-  /* Canvas */
-  .visualization-container {
-    margin-top: 1rem;
-  }
-
-  canvas#scope {
-    width: 100%;
-    height: 200px;
-    border-radius: var(--border-radius);
-    background: rgba(10, 25, 41, 0.5);
-    border: 1px solid rgba(0, 200, 255, 0.1);
-  }
-
-  /* Codon Table */
-  .codon-table-container {
-    margin-top: 1.5rem;
-  }
-
-  .codon-table {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.75rem;
-    margin-top: 1rem;
-  }
-
-  .codon-tile {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    padding: 0.75rem;
-    cursor: pointer;
-    transition: var(--transition);
-    border: 1px solid transparent;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .codon-tile::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(0, 200, 255, 0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .codon-tile:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-2px);
-    border-color: rgba(0, 200, 255, 0.2);
-  }
-
-  .codon-tile:hover::before {
-    opacity: 1;
-  }
-
-  .codon-tile b {
-    font-family: 'Fira Code', monospace;
-    font-size: 1rem;
-  }
-
-  .codon-tile .amino-acid {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin: 0.25rem 0;
-  }
-
-  /* Footer */
-  footer {
-    padding: 1.5rem 0;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    border-top: 1px solid rgba(0, 200, 255, 0.1);
-    margin-top: 2rem;
-    background: rgba(10, 25, 41, 0.7);
-  }
-
-  /* Responsive Adjustments */
-  @media (max-width: 768px) {
-    .main-content {
-      padding: 1rem 0;
-    }
-    
-    .card {
-      padding: 1rem;
-    }
-    
-    .input-group {
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    
-    .btn-group {
-      justify-content: center;
-    }
-    
-    .stats {
-      justify-content: center;
-    }
-    
-    .codons-list {
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    }
-    
-    .codon-table {
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    }
-    
-    header h1 {
-      font-size: 2rem;
-    }
-  }
-
-  /* Animations */
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
-
-  .pulse {
-    animation: pulse 0.5s ease;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--accent-primary);
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-secondary);
-  }
 </style>
 </head>
 <body>
-  <!-- DNA Helix Background -->
-  <div class="dna-helix">
-    <div class="helix-line"></div>
-    <div class="helix-line"></div>
-    <div class="helix-line"></div>
-    <div class="helix-line"></div>
-    <div class="helix-node"></div>
-    <div class="helix-node"></div>
-    <div class="helix-node"></div>
-    <div class="helix-node"></div>
+
+<div class="app-container">
+  
+  <!-- Left Panel: Synthesis Controls -->
+  <aside class="panel">
+    <h1>RNA Syn<span style="color:var(--text-main)">thesia</span></h1>
+    <p style="color:var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem;">Motor Bioinformático Musical v2.0</p>
+
+    <h2>⚙️ Motor de Síntesis</h2>
+    
+    <div class="control-group">
+      <label>Biblioteca Genética (Presets)</label>
+      <select id="preset-select">
+        <option value="oxytocin">Oxitocina (Hormona del Amor)</option>
+        <option value="insulin">Insulina (Regulación Metabólica)</option>
+        <option value="gfp">GFP (Proteína Fluorescente Verde)</option>
+        <option value="endorphin">Beta-Endorfina (Analgésico Natural)</option>
+        <option value="collagen">Colágeno Tipo I (Estructural)</option>
+      </select>
+    </div>
+
+    <div class="flex-row">
+      <div class="control-group">
+        <label>Tempo: <span id="bpm-val">120</span> BPM</label>
+        <input type="range" id="bpm" min="60" max="240" value="120">
+      </div>
+      <div class="control-group">
+        <label>División</label>
+        <select id="division">
+          <option value="0.25">Semicorcheas (1/4)</option>
+          <option value="0.5" selected>Corcheas (1/2)</option>
+          <option value="1">Negras (1)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex-row">
+      <div class="control-group">
+        <label>Tono Base</label>
+        <select id="root-note">
+          <option value="C">Do (C)</option>
+          <option value="C#">Do# (C#)</option>
+          <option value="D">Re (D)</option>
+          <option value="D#">Re# (D#)</option>
+          <option value="E">Mi (E)</option>
+          <option value="F">Fa (F)</option>
+          <option value="F#" selected>Fa# (F#)</option>
+          <option value="G">Sol (G)</option>
+          <option value="G#">Sol# (G#)</option>
+          <option value="A">La (A)</option>
+          <option value="A#">La# (A#)</option>
+          <option value="B">Si (B)</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Escala</label>
+        <select id="scale-type">
+          <option value="minor">Menor Natural</option>
+          <option value="major">Mayor</option>
+          <option value="dorian" selected>Dórica</option>
+          <option value="phrygian">Frigia</option>
+          <option value="lydian">Lidia</option>
+          <option value="japanese">Japonesa (In Sen)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Timbre Sintetizador</label>
+      <select id="synth-type">
+        <option value="fm">FM Pluck (Moderno)</option>
+        <option value="sawtooth">Sierra Analógica</option>
+        <option value="sine">Senoidal Pura</option>
+        <option value="square">Onda Cuadrada (Retro)</option>
+      </select>
+    </div>
+
+    <div class="flex-row">
+      <div class="control-group">
+        <label>Reverb (Espacio)</label>
+        <input type="range" id="fx-reverb" min="0" max="1" step="0.05" value="0.6">
+      </div>
+      <div class="control-group">
+        <label>Delay (Eco)</label>
+        <input type="range" id="fx-delay" min="0" max="1" step="0.05" value="0.4">
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button id="btn-play" class="btn btn-play">▶ Sintetizar</button>
+      <button id="btn-stop" class="btn btn-stop">■ Detener</button>
+    </div>
+  </aside>
+
+  <!-- Right Panel: Workspace (Tabs) -->
+  <main class="panel">
+    
+    <div class="tabs-header">
+      <button class="ws-tab active" data-target="ws-sequencer">🧬 Secuenciador</button>
+      <button class="ws-tab" data-target="ws-mutations">🦠 Mutaciones</button>
+    </div>
+
+    <!-- VIEW: SEQUENCER -->
+    <div id="ws-sequencer" class="ws-content active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Longitud</div>
+          <div class="stat-val" id="stat-len">0</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">GC %</div>
+          <div class="stat-val" id="stat-gc">0%</div>
+        </div>
+        <div class="stat-card" style="grid-column: span 2;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Estado del Ribosoma</div>
+          <div class="stat-val" id="stat-status" style="color: var(--primary);">Esperando...</div>
+        </div>
+      </div>
+
+      <div class="editor-wrapper">
+        <textarea id="rna-input" spellcheck="false" placeholder="Ingresa secuencia ARN (ej. AUGGCUUAG...)"></textarea>
+        <div id="rna-visual"></div>
+      </div>
+
+      <canvas id="visualizer"></canvas>
+
+      <h2>🔬 Cadena de Polipéptidos (Traducción)</h2>
+      <div id="aa-container" class="aa-grid"></div>
+    </div>
+
+    <!-- VIEW: MUTATIONS LAB -->
+    <div id="ws-mutations" class="ws-content">
+      <h2>🧬 Inyectar Variabilidad Genética</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Aplica diferentes tipos de mutaciones a la secuencia actual para observar y escuchar cómo la evolución altera la estructura de la proteína.</p>
+      
+      <div class="mutation-grid">
+        <div class="mutation-card">
+          <div class="mutation-header">
+            <span class="mutation-title">Silenciosa</span>
+            <button class="info-btn" onclick="showModal('silent')">i</button>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Cambia una base, pero el aminoácido se mantiene igual.</p>
+          <button class="btn btn-mut" onclick="applyMutation('silent')" style="margin-top: auto; padding: 0.5rem;">Generar</button>
+        </div>
+        
+        <div class="mutation-card">
+          <div class="mutation-header">
+            <span class="mutation-title">Cambio de Sentido (Missense)</span>
+            <button class="info-btn" onclick="showModal('missense')">i</button>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Altera un codón produciendo un aminoácido distinto.</p>
+          <button class="btn btn-mut" onclick="applyMutation('missense')" style="margin-top: auto; padding: 0.5rem;">Generar</button>
+        </div>
+
+        <div class="mutation-card">
+          <div class="mutation-header">
+            <span class="mutation-title">Sin Sentido (Nonsense)</span>
+            <button class="info-btn" onclick="showModal('nonsense')">i</button>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Crea accidentalmente una señal de PARADA (Stop).</p>
+          <button class="btn btn-mut" onclick="applyMutation('nonsense')" style="margin-top: auto; padding: 0.5rem;">Generar</button>
+        </div>
+
+        <div class="mutation-card">
+          <div class="mutation-header">
+            <span class="mutation-title">Desplazamiento (Frameshift)</span>
+            <button class="info-btn" onclick="showModal('frameshift')">i</button>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Inserta una base extra, desfasando toda la lectura.</p>
+          <button class="btn btn-mut" onclick="applyMutation('frameshift')" style="margin-top: auto; padding: 0.5rem;">Generar</button>
+        </div>
+      </div>
+
+      <h2>🔍 Comparador de Secuencias</h2>
+      <div class="diff-viewer" id="diff-viewer">
+        <p style="color: var(--text-muted); text-align: center; margin-top: 2rem;">Aplica una mutación arriba para ver los cambios.</p>
+      </div>
+
+      <button id="btn-load-mutation" class="btn btn-play" style="display: none; width: 100%;">🎵 Cargar en el Secuenciador y Escuchar</button>
+
+    </div>
+  </main>
+</div>
+
+<!-- Modal for info popups -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Título</div>
+    <p id="modal-text" style="color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;"></p>
+    <button class="modal-close" onclick="closeModal()">Entendido</button>
   </div>
+</div>
 
-  <header>
-    <div class="container">
-      <div class="dna-icon">🧬</div>
-      <h1>RNA → Música por Codones</h1>
-      <p>Convierte secuencias de RNA en composiciones musicales utilizando el código genético</p>
+<script>
+/**
+ * DATA & TABLES
+ */
+const AMINO_ACIDS = {
+  'Ala': { name: 'Alanina', type: 'nonpolar', abbr: 'A' },
+  'Val': { name: 'Valina', type: 'nonpolar', abbr: 'V' },
+  'Leu': { name: 'Leucina', type: 'nonpolar', abbr: 'L' },
+  'Ile': { name: 'Isoleucina', type: 'nonpolar', abbr: 'I' },
+  'Pro': { name: 'Prolina', type: 'nonpolar', abbr: 'P' },
+  'Phe': { name: 'Fenilalanina', type: 'nonpolar', abbr: 'F' },
+  'Trp': { name: 'Triptófano', type: 'nonpolar', abbr: 'W' },
+  'Met': { name: 'Metionina', type: 'nonpolar', abbr: 'M' },
+  'Gly': { name: 'Glicina', type: 'nonpolar', abbr: 'G' },
+  'Ser': { name: 'Serina', type: 'polar', abbr: 'S' },
+  'Thr': { name: 'Treonina', type: 'polar', abbr: 'T' },
+  'Cys': { name: 'Cisteína', type: 'polar', abbr: 'C' },
+  'Tyr': { name: 'Tirosina', type: 'polar', abbr: 'Y' },
+  'Asn': { name: 'Asparagina', type: 'polar', abbr: 'N' },
+  'Gln': { name: 'Glutamina', type: 'polar', abbr: 'Q' },
+  'Lys': { name: 'Lisina', type: 'basic', abbr: 'K' },
+  'Arg': { name: 'Arginina', type: 'basic', abbr: 'R' },
+  'His': { name: 'Histidina', type: 'basic', abbr: 'H' },
+  'Asp': { name: 'Ácido Aspártico', type: 'acidic', abbr: 'D' },
+  'Glu': { name: 'Ácido Glutámico', type: 'acidic', abbr: 'E' },
+  'Stop': { name: 'Codón de Parada', type: 'stop', abbr: '*' }
+};
+
+const CODON_TABLE = {
+  UUU: 'Phe', UUC: 'Phe', UUA: 'Leu', UUG: 'Leu',
+  UCU: 'Ser', UCC: 'Ser', UCA: 'Ser', UCG: 'Ser',
+  UAU: 'Tyr', UAC: 'Tyr', UAA: 'Stop', UAG: 'Stop',
+  UGU: 'Cys', UGC: 'Cys', UGA: 'Stop', UGG: 'Trp',
+  CUU: 'Leu', CUC: 'Leu', CUA: 'Leu', CUG: 'Leu',
+  CCU: 'Pro', CCC: 'Pro', CCA: 'Pro', CCG: 'Pro',
+  CAU: 'His', CAC: 'His', CAA: 'Gln', CAG: 'Gln',
+  CGU: 'Arg', CGC: 'Arg', CGA: 'Arg', CGG: 'Arg',
+  AUU: 'Ile', AUC: 'Ile', AUA: 'Ile', AUG: 'Met',
+  ACU: 'Thr', ACC: 'Thr', ACA: 'Thr', ACG: 'Thr',
+  AAU: 'Asn', AAC: 'Asn', AAA: 'Lys', AAG: 'Lys',
+  AGU: 'Ser', AGC: 'Ser', AGA: 'Arg', AGG: 'Arg',
+  GUU: 'Val', GUC: 'Val', GUA: 'Val', GUG: 'Val',
+  GCU: 'Ala', GCC: 'Ala', GCA: 'Ala', GCG: 'Ala',
+  GAU: 'Asp', GAC: 'Asp', GAA: 'Glu', GAG: 'Glu',
+  GGU: 'Gly', GGC: 'Gly', GGA: 'Gly', GGG: 'Gly'
+};
+
+const PRESETS = {
+  oxytocin: "AUGUGCUACCUGCAGAAUUGCCCCCGGGGA",
+  insulin: "AUGGCCCUGUGGAUGCGCCUCCUGCCCCUGCUGGCGCUGCUGGCCCUCUGGGGACCUGACCCAGCCGCAGCCUUUGUGAACCAACACCUGUGCGGCUCACACCUGGUGGAAGCUCUCUACCUAGUGUGCGGGGAACGAGGCUUCUUCUACACACCCAAGACCCGCCGGGAGGCAGAGGACCUGCAGGUGGGGCAGGUGGAGCUGGGCGGCGGCCCUGGUGCAGGCAGCCUGCAGCCCUUGGCCCUGGAGGGGUCCCUGCAGAAGCGUGGCAUUGUGGAACAAUGCUGUACCAGCAUCUGCUCCCUCUACCAGCUGGAGAACUACUGCAACUAG",
+  gfp: "AUGAGUAAAGGAGAAGAACUUUUCACUGGAGUUGUCCCAAUUCUUGUUGAUUUAGGACAAACUGCUAGAGCUGGAAAAGUAUGCAAAGGUGAAGUAAAUUUGUCAAAGAAUACUGAUCUGGAAAAUUGAAACAAUACUGAAAACGGUGUAACUAAACUA",
+  endorphin: "AUGUACGGUGGUUUCAUGACCUCCGAGAAGAGCCAAACUCCUCUGGUUACUCUUAAAAAAA",
+  collagen: "AUGUUCAGCUUUGUGGGACUUUACUUGCUGGCCUGCCUGCUUCCCGGGGCCCUUGGGCCGGGCGGCCCUGGCGGUCCCGGUGGGCCUGGAGGACCCGGUGGACCCGGUGGACCCGGU"
+};
+
+const SCALES = {
+  major: [0, 2, 4, 5, 7, 9, 11],
+  minor: [0, 2, 3, 5, 7, 8, 10],
+  dorian: [0, 2, 3, 5, 7, 9, 10],
+  phrygian: [0, 1, 3, 5, 7, 8, 10],
+  lydian: [0, 2, 4, 6, 7, 9, 11],
+  japanese: [0, 1, 5, 7, 8]
+};
+const NOTES = {"C":0,"C#":1,"D":2,"D#":3,"E":4,"F":5,"F#":6,"G":7,"G#":8,"A":9,"A#":10,"B":11};
+const BASE_DEGREES = { G: 0, C: 2, A: 4, U: 6 };
+const CHORD_TYPES = { nonpolar: [0, 2, 4], polar: [0, 2, 5], basic: [0, 3, 4], acidic: [0, 1, 4], stop: [] };
+
+// --- AUDIO ENGINE ---
+let audioCtx, masterGain, compressor, analyser, reverbNode, delayNode, delayFeedback;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.8;
+  compressor = audioCtx.createDynamicsCompressor();
+  compressor.threshold.value = -24;
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  
+  reverbNode = audioCtx.createConvolver();
+  const length = audioCtx.sampleRate * 2.5; 
+  const impulse = audioCtx.createBuffer(2, length, audioCtx.sampleRate);
+  for (let i = 0; i < 2; i++) {
+    const channel = impulse.getChannelData(i);
+    for (let j = 0; j < length; j++) channel[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / length, 4);
+  }
+  reverbNode.buffer = impulse;
+  
+  delayNode = audioCtx.createDelay();
+  delayNode.delayTime.value = 0.333;
+  delayFeedback = audioCtx.createGain();
+  delayFeedback.gain.value = 0.4;
+  delayNode.connect(delayFeedback);
+  delayFeedback.connect(delayNode);
+  
+  const reverbGain = audioCtx.createGain(); reverbGain.gain.value = 0.6;
+  reverbNode.connect(reverbGain).connect(compressor);
+  
+  const delayOutGain = audioCtx.createGain(); delayOutGain.gain.value = 0.4;
+  delayNode.connect(delayOutGain).connect(compressor);
+
+  masterGain.connect(compressor);
+  masterGain.connect(reverbNode);
+  masterGain.connect(delayNode);
+  compressor.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  
+  startVisualizer();
+}
+
+function getFreq(rootKey, scaleName, octave, degreeOffset) {
+  const scale = SCALES[scaleName];
+  const rootMidi = 60 + NOTES[rootKey] + (octave * 12);
+  const octavesUp = Math.floor(degreeOffset / scale.length);
+  const scaleDegree = degreeOffset % scale.length;
+  const midiNote = rootMidi + scale[scaleDegree] + (octavesUp * 12);
+  return 440 * Math.pow(2, (midiNote - 69) / 12);
+}
+
+function playSynth(freq, time, dur, type, velocity = 1) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  
+  filter.type = 'lowpass';
+  if (type === 'fm') {
+    const mod = audioCtx.createOscillator();
+    const modGain = audioCtx.createGain();
+    osc.type = 'sine'; mod.type = 'sine'; mod.frequency.value = freq * 2;
+    modGain.gain.setValueAtTime(freq * 3, time);
+    modGain.gain.exponentialRampToValueAtTime(10, time + dur * 0.5);
+    mod.connect(modGain); modGain.connect(osc.frequency);
+    mod.start(time); mod.stop(time + dur + 0.1);
+    filter.frequency.value = 5000;
+  } else {
+    osc.type = type;
+    filter.frequency.setValueAtTime(freq * 6, time);
+    filter.frequency.exponentialRampToValueAtTime(freq, time + dur * 0.8);
+  }
+  osc.frequency.setValueAtTime(freq, time);
+  
+  gain.gain.setValueAtTime(0, time);
+  const peak = 0.6 * velocity;
+  gain.gain.linearRampToValueAtTime(peak, time + 0.02);
+  gain.gain.exponentialRampToValueAtTime(peak * 0.3, time + dur * 0.3);
+  gain.gain.linearRampToValueAtTime(0, time + dur);
+
+  osc.connect(filter); filter.connect(gain); gain.connect(masterGain);
+  osc.start(time); osc.stop(time + dur + 0.1);
+}
+
+function playPad(freq, time, dur, velocity = 0.5) {
+  const osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator();
+  const gain = audioCtx.createGain(), filter = audioCtx.createBiquadFilter();
+  osc1.type = 'sawtooth'; osc2.type = 'square';
+  osc1.frequency.value = freq; osc2.frequency.value = freq * 1.01;
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(freq * 1.5, time);
+  filter.frequency.linearRampToValueAtTime(freq * 3, time + dur/2);
+  filter.frequency.linearRampToValueAtTime(freq * 1.5, time + dur);
+  gain.gain.setValueAtTime(0, time);
+  gain.gain.linearRampToValueAtTime(0.2 * velocity, time + dur * 0.3);
+  gain.gain.linearRampToValueAtTime(0, time + dur);
+  osc1.connect(filter); osc2.connect(filter); filter.connect(gain);
+  gain.connect(compressor); gain.connect(reverbNode);
+  osc1.start(time); osc2.start(time);
+  osc1.stop(time + dur + 0.1); osc2.stop(time + dur + 0.1);
+}
+
+// --- APP LOGIC ---
+const dom = {
+  input: document.getElementById('rna-input'),
+  visual: document.getElementById('rna-visual'),
+  preset: document.getElementById('preset-select'),
+  bpm: document.getElementById('bpm'),
+  bpmVal: document.getElementById('bpm-val'),
+  div: document.getElementById('division'),
+  root: document.getElementById('root-note'),
+  scale: document.getElementById('scale-type'),
+  synth: document.getElementById('synth-type'),
+  btnPlay: document.getElementById('btn-play'),
+  btnStop: document.getElementById('btn-stop'),
+  statLen: document.getElementById('stat-len'),
+  statGc: document.getElementById('stat-gc'),
+  statStatus: document.getElementById('stat-status'),
+  aaContainer: document.getElementById('aa-container')
+};
+
+let isPlaying = false;
+let sequence = "";
+let codonData = [];
+let nextNoteTime = 0;
+let currentCodonIdx = 0;
+let scheduleTimer;
+
+function cleanSequence(raw) { return raw.toUpperCase().replace(/T/g, 'U').replace(/[^GUAC]/g, ''); }
+
+function parseCodons(seq) {
+  const codons = [];
+  for(let i = 0; i < seq.length - 2; i+=3) {
+    const triplet = seq.substring(i, i+3);
+    const aaKey = CODON_TABLE[triplet];
+    codons.push({ triplet, ...(AMINO_ACIDS[aaKey] || AMINO_ACIDS['Stop']) });
+  }
+  return codons;
+}
+
+function updateVisuals(seq) {
+  dom.statLen.textContent = seq.length;
+  const gcCount = (seq.match(/[GC]/g) || []).length;
+  dom.statGc.textContent = seq.length ? Math.round((gcCount / seq.length) * 100) + '%' : '0%';
+  let html = '';
+  for(let i=0; i<seq.length; i++) html += `<span class="base-${seq[i]}" id="base-${i}">${seq[i]}</span>`;
+  dom.visual.innerHTML = html;
+  
+  codonData = parseCodons(seq);
+  dom.aaContainer.innerHTML = codonData.map((c, i) => `
+    <div class="aa-card prop-${c.type}" id="aa-card-${i}">
+      <div class="aa-codon">${c.triplet}</div>
+      <div class="aa-name">${c.name}</div>
+      <div class="aa-prop">${c.type}</div>
     </div>
-  </header>
+  `).join('');
+}
 
-  <div class="container">
-    <div class="main-content">
-      <!-- Left Column: Input and Controls -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-icon">🧪</div>
-          <div>
-            <h2 class="card-title">Secuencia de RNA</h2>
-            <p class="card-subtitle">Ingresa una secuencia de RNA usando bases G, U, A, C</p>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="seq">Secuencia de RNA</label>
-          <textarea id="seq" spellcheck="false" placeholder="Ejemplo: AUGGCUUUUAG..."></textarea>
-        </div>
+function highlightCodon(idx) {
+  document.querySelectorAll('.ribosome-active').forEach(el => el.classList.remove('ribosome-active'));
+  document.querySelectorAll('.aa-card.active').forEach(el => el.classList.remove('active'));
+  if(idx >= codonData.length) return;
+  for(let i=0; i<3; i++) {
+    const el = document.getElementById(`base-${idx * 3 + i}`);
+    if(el) el.classList.add('ribosome-active');
+  }
+  const card = document.getElementById(`aa-card-${idx}`);
+  if(card) { card.classList.add('active'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+}
 
-        <div class="stats">
-          <div class="stat">
-            <span>Longitud:</span>
-            <span class="stat-value" id="lenStat">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-G">G:</span>
-            <span class="stat-value" id="countG">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-U">U:</span>
-            <span class="stat-value" id="countU">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-A">A:</span>
-            <span class="stat-value" id="countA">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-C">C:</span>
-            <span class="stat-value" id="countC">0</span>
-          </div>
-          <div class="stat">
-            <span>Inválidos:</span>
-            <span class="stat-value" id="invalid">0</span>
-          </div>
-        </div>
+function scheduleNext() {
+  while (nextNoteTime < audioCtx.currentTime + 0.1) {
+    if (currentCodonIdx >= codonData.length) { stopSequence(); return; }
+    playCodon(codonData[currentCodonIdx], nextNoteTime);
+    const idxToHighlight = currentCodonIdx;
+    setTimeout(() => { if(isPlaying) { highlightCodon(idxToHighlight); dom.statStatus.textContent = `Leyendo codón ${idxToHighlight + 1}/${codonData.length}`; } }, (nextNoteTime - audioCtx.currentTime) * 1000);
+    const stepDuration = (60 / dom.bpm.value) * dom.div.value * 4;
+    nextNoteTime += stepDuration; currentCodonIdx++;
+  }
+  scheduleTimer = setTimeout(scheduleNext, 25);
+}
 
-        <div class="grid-container">
-          <label>Visualización de la secuencia</label>
-          <div class="grid" id="grid"></div>
-        </div>
+function playCodon(codon, time) {
+  const rootKey = dom.root.value, scaleName = dom.scale.value, synthType = dom.synth.value;
+  const stepDur = ((60 / dom.bpm.value) * dom.div.value * 4) * 0.9;
+  
+  for(let i=0; i<3; i++) {
+    const freq = getFreq(rootKey, scaleName, 1, BASE_DEGREES[codon.triplet[i]]);
+    playSynth(freq, time + (i * (stepDur / 3)), stepDur / 3, synthType, 1.0);
+  }
 
-        <div class="form-group">
-          <label>Configuración de reproducción</label>
-          <div class="input-group">
-            <div style="flex: 1;">
-              <label for="bpm">Tempo (BPM)</label>
-              <input id="bpm" type="range" min="40" max="220" step="1" value="120">
-              <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
-                <span style="font-size: 0.8rem;">40</span>
-                <span id="bpmValue" style="font-weight: 600;">120</span>
-                <span style="font-size: 0.8rem;">220</span>
-              </div>
-            </div>
-            <div style="flex: 1;">
-              <label for="wave">Forma de onda</label>
-              <select id="wave">
-                <option value="sine">Seno</option>
-                <option value="triangle">Triángulo</option>
-                <option value="square">Cuadrada</option>
-                <option value="sawtooth">Sierra</option>
-              </select>
-            </div>
-          </div>
+  if (codon.type === 'stop') playSynth(50, time, stepDur, 'square', 2.0);
+  else CHORD_TYPES[codon.type].forEach(offset => playPad(getFreq(rootKey, scaleName, -1, offset), time, stepDur, 0.4));
+}
 
-          <div class="input-group">
-            <div style="flex: 1;">
-              <label for="root">Tono base</label>
-              <select id="root">
-                <option>C</option><option>C#</option><option>D</option><option>D#</option>
-                <option>E</option><option>F</option><option>F#</option><option>G</option>
-                <option>G#</option><option>A</option><option>A#</option><option>B</option>
-              </select>
-            </div>
-            <div style="flex: 1;">
-              <label for="scale">Escala</label>
-              <select id="scale">
-                <option value="major">Mayor</option>
-                <option value="minor">Menor</option>
-                <option value="pentatonic">Pentatónica</option>
-                <option value="chromatic">Cromática</option>
-              </select>
-            </div>
-            <div style="flex: 1;">
-              <label for="octave">Octava</label>
-              <input id="octave" type="number" min="-2" max="3" step="1" value="0">
-            </div>
-          </div>
+function playSequence() {
+  if(sequence.length < 3) return;
+  initAudio();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  const bps = parseFloat(dom.bpm.value) / 60;
+  if(delayNode) delayNode.delayTime.value = (1 / bps) * 0.75;
+  isPlaying = true; currentCodonIdx = 0; nextNoteTime = audioCtx.currentTime + 0.1;
+  dom.btnPlay.innerHTML = '⏸ Pausa'; dom.btnPlay.style.background = 'var(--bg-surface-hover)';
+  dom.statStatus.textContent = "Iniciando traducción...";
+  scheduleNext();
+}
 
-          <div class="input-group">
-            <div style="flex: 1;">
-              <label for="div">Duración del codón</label>
-              <select id="div">
-                <option value="1">Negra (1)</option>
-                <option value="0.5">Corchea (1/2)</option>
-                <option value="0.25">Semicorchea (1/4)</option>
-                <option value="2">Blanca (2)</option>
-              </select>
-            </div>
-          </div>
-        </div>
+function stopSequence() {
+  isPlaying = false; clearTimeout(scheduleTimer);
+  dom.btnPlay.innerHTML = '▶ Sintetizar'; dom.btnPlay.style.background = 'linear-gradient(135deg, var(--primary), #0077ff)';
+  dom.statStatus.textContent = "Detenido";
+  document.querySelectorAll('.ribosome-active, .active').forEach(el => el.classList.remove('ribosome-active', 'active'));
+}
 
-        <div class="form-group">
-          <label>Controles de reproducción</label>
-          <div class="btn-group">
-            <button class="btn btn-primary" id="play">Reproducir</button>
-            <button class="btn btn-secondary" id="pause">Pausar</button>
-            <button class="btn btn-secondary" id="stop">Detener</button>
-            <button class="btn btn-secondary" id="example">Ejemplo</button>
-            <button class="btn btn-secondary" id="clear">Limpiar</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Probar bases individuales</label>
-          <div class="btn-group">
-            <button class="btn btn-secondary test" data-b="G">G</button>
-            <button class="btn btn-secondary test" data-b="U">U</button>
-            <button class="btn btn-secondary test" data-b="A">A</button>
-            <button class="btn btn-secondary test" data-b="C">C</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Right Column: Visualization and Codons -->
-      <section class="card">
-        <div class="card-header">
-          <div class="card-icon">🔬</div>
-          <div>
-            <h2 class="card-title">Visualización y Codones</h2>
-            <p class="card-subtitle">Espectro de audio y codones detectados</p>
-          </div>
-        </div>
-
-        <div class="visualization-container">
-          <label>Espectro de audio</label>
-          <canvas id="scope"></canvas>
-        </div>
-
-        <div class="form-group">
-          <label>Codones detectados</label>
-          <div id="codonList" class="codons-list"></div>
-        </div>
-
-        <div class="codon-table-container">
-          <details>
-            <summary style="cursor: pointer; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-              <span>📋</span> Tabla completa del código genético (64 codones)
-            </summary>
-            <div id="codonTable" class="codon-table"></div>
-          </details>
-        </div>
-      </section>
-    </div>
-  </div>
-
-  <footer>
-    <div class="container">
-      <p>Desarrollado con Web Audio API • Cada codón produce un arpegio único basado en sus bases constituyentes</p>
-    </div>
-  </footer>
-
-  <script>
-    (() => {
-      // ====== Mapeo genético (RNA) ======
-      const CODON = {
-        UUU: {aa: 'Phe', long: 'Fenilalanina', one: 'F'}, UUC: {aa: 'Phe', long: 'Fenilalanina', one: 'F'},
-        UUA: {aa: 'Leu', long: 'Leucina', one: 'L'}, UUG: {aa: 'Leu', long: 'Leucina', one: 'L'},
-        UCU: {aa: 'Ser', long: 'Serina', one: 'S'}, UCC: {aa: 'Ser', long: 'Serina', one: 'S'},
-        UCA: {aa: 'Ser', long: 'Serina', one: 'S'}, UCG: {aa: 'Ser', long: 'Serina', one: 'S'},
-        UAU: {aa: 'Tyr', long: 'Tirosina', one: 'Y'}, UAC: {aa: 'Tyr', long: 'Tirosina', one: 'Y'},
-        UAA: {aa: 'Stop', long: 'Stop', one: '*'}, UAG: {aa: 'Stop', long: 'Stop', one: '*'},
-        UGU: {aa: 'Cys', long: 'Cisteína', one: 'C'}, UGC: {aa: 'Cys', long: 'Cisteína', one: 'C'},
-        UGA: {aa: 'Stop', long: 'Stop', one: '*'}, UGG: {aa: 'Trp', long: 'Triptófano', one: 'W'},
-
-        CUU: {aa: 'Leu', long: 'Leucina', one: 'L'}, CUC: {aa: 'Leu', long: 'Leucina', one: 'L'},
-        CUA: {aa: 'Leu', long: 'Leucina', one: 'L'}, CUG: {aa: 'Leu', long: 'Leucina', one: 'L'},
-        CCU: {aa: 'Pro', long: 'Prolina', one: 'P'}, CCC: {aa: 'Pro', long: 'Prolina', one: 'P'},
-        CCA: {aa: 'Pro', long: 'Prolina', one: 'P'}, CCG: {aa: 'Pro', long: 'Prolina', one: 'P'},
-        CAU: {aa: 'His', long: 'Histidina', one: 'H'}, CAC: {aa: 'His', long: 'Histidina', one: 'H'},
-        CAA: {aa: 'Gln', long: 'Glutamina', one: 'Q'}, CAG: {aa: 'Gln', long: 'Glutamina', one: 'Q'},
-        CGU: {aa: 'Arg', long: 'Arginina', one: 'R'}, CGC: {aa: 'Arg', long: 'Arginina', one: 'R'},
-        CGA: {aa: 'Arg', long: 'Arginina', one: 'R'}, CGG: {aa: 'Arg', long: 'Arginina', one: 'R'},
-
-        AUU: {aa: 'Ile', long: 'Isoleucina', one: 'I'}, AUC: {aa: 'Ile', long: 'Isoleucina', one: 'I'},
-        AUA: {aa: 'Ile', long: 'Isoleucina', one: 'I'}, AUG: {aa: 'Met', long: 'Metionina (Start)', one: 'M'},
-        ACU: {aa: 'Thr', long: 'Treonina', one: 'T'}, ACC: {aa: 'Thr', long: 'Treonina', one: 'T'},
-        ACA: {aa: 'Thr', long: 'Treonina', one: 'T'}, ACG: {aa: 'Thr', long: 'Treonina', one: 'T'},
-        AAU: {aa: 'Asn', long: 'Asparagina', one: 'N'}, AAC: {aa: 'Asn', long: 'Asparagina', one: 'N'},
-        AAA: {aa: 'Lys', long: 'Lisina', one: 'K'}, AAG: {aa: 'Lys', long: 'Lisina', one: 'K'},
-        AGU: {aa: 'Ser', long: 'Serina', one: 'S'}, AGC: {aa: 'Ser', long: 'Serina', one: 'S'},
-        AGA: {aa: 'Arg', long: 'Arginina', one: 'R'}, AGG: {aa: 'Arg', long: 'Arginina', one: 'R'},
-
-        GUU: {aa: 'Val', long: 'Valina', one: 'V'}, GUC: {aa: 'Val', long: 'Valina', one: 'V'},
-        GUA: {aa: 'Val', long: 'Valina', one: 'V'}, GUG: {aa: 'Val', long: 'Valina', one: 'V'},
-        GCU: {aa: 'Ala', long: 'Alanina', one: 'A'}, GCC: {aa: 'Ala', long: 'Alanina', one: 'A'},
-        GCA: {aa: 'Ala', long: 'Alanina', one: 'A'}, GCG: {aa: 'Ala', long: 'Alanina', one: 'A'},
-        GAU: {aa: 'Asp', long: 'Ácido aspártico', one: 'D'}, GAC: {aa: 'Asp', long: 'Ácido aspártico', one: 'D'},
-        GAA: {aa: 'Glu', long: 'Ácido glutámico', one: 'E'}, GAG: {aa: 'Glu', long: 'Ácido glutámico', one: 'E'},
-        GGU: {aa: 'Gly', long: 'Glicina', one: 'G'}, GGC: {aa: 'Gly', long: 'Glicina', one: 'G'},
-        GGA: {aa: 'Gly', long: 'Glicina', one: 'G'}, GGG: {aa: 'Gly', long: 'Glicina', one: 'G'}
-      };
-
-      // ====== Utilidades musicales ======
-      const noteIndex = {C: 0, "C#": 1, D: 2, "D#": 3, E: 4, F: 5, "F#": 6, G: 7, "G#": 8, A: 9, "A#": 10, B: 11};
-      const scales = {
-        major: [0, 2, 4, 5, 7, 9, 11],
-        minor: [0, 2, 3, 5, 7, 8, 10],
-        pentatonic: [0, 2, 4, 7, 9],
-        chromatic: Array.from({length: 12}, (_, i) => i)
-      };
-      const baseDegreeIndex = {G: 0, U: 1, A: 2, C: 4};
-      
-      function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
-      function rootMidi(key = "C", oct = 0) { return 60 + noteIndex[key] + (oct * 12); }
-      
-      function baseToFreq(b, key, scale, oct) {
-        const scaleArr = scales[scale] || scales.major;
-        const degIdx = baseDegreeIndex[b];
-        const degree = scaleArr[degIdx % scaleArr.length];
-        const extraOct = (degIdx >= scaleArr.length) ? 12 : 0;
-        return midiToFreq(rootMidi(key, oct) + degree + extraOct);
+// --- VISUALIZER ---
+function startVisualizer() {
+  const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
+  function draw() {
+    requestAnimationFrame(draw);
+    if (!analyser) return;
+    const W = canvas.width = canvas.clientWidth * window.devicePixelRatio, H = canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    const bufferLength = analyser.frequencyBinCount, dataArray = new Uint8Array(bufferLength);
+    analyser.getByteFrequencyData(dataArray);
+    ctx.fillStyle = 'rgba(5, 5, 5, 0.2)'; ctx.fillRect(0, 0, W, H);
+    
+    const cx = W / 2, cy = H / 2, radius = Math.min(cx, cy) * 0.5;
+    ctx.lineWidth = 2;
+    for (let rings = 0; rings < 2; rings++) {
+      ctx.beginPath();
+      for (let i = 0; i < bufferLength; i += 8) {
+        const val = dataArray[i] / 255.0, r = radius + (val * radius * 1.5) * (rings === 0 ? 1 : -1);
+        const rads = (i / bufferLength) * Math.PI * 2 + (Date.now() / 2000) * (rings === 0 ? 1 : -1);
+        const x = cx + Math.cos(rads) * r, y = cy + Math.sin(rads) * r;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, rings === 0 ? '#00f0ff' : '#7000ff'); grad.addColorStop(1, rings === 0 ? '#10b981' : '#f59e0b');
+      ctx.strokeStyle = grad; ctx.stroke();
+    }
+    const barWidth = (W / bufferLength) * 4;
+    for(let i = 0; i < bufferLength; i+=4) {
+      const barHeight = (dataArray[i] / 255) * (H/3);
+      ctx.fillStyle = `hsl(${(i/bufferLength)*360}, 100%, 50%)`;
+      ctx.fillRect(i * barWidth, H - barHeight, barWidth - 1, barHeight);
+    }
+  }
+  draw();
+}
 
-      // sonido de un codón: arpegio rápido b1→b2→b3 + acorde final
-      function playCodonSound(codon, {wave = 'sine', key = 'C', scale = 'major', oct = 0, dur = 0.5}) {
-        ensureAudio();
-        const b1 = codon[0], b2 = codon[1], b3 = codon[2];
-        const f1 = baseToFreq(b1, key, scale, oct);
-        const f2 = baseToFreq(b2, key, scale, oct);
-        const f3 = baseToFreq(b3, key, scale, oct);
-        
-        // arpegio
-        playTone(f1, Math.max(.1, dur * 0.33), wave);
-        setTimeout(() => playTone(f2, Math.max(.1, dur * 0.33), wave), dur * 330);
-        setTimeout(() => playTone(f3, Math.max(.1, dur * 0.33), wave), dur * 660);
-        
-        // acorde suave al final (si no es STOP)
-        const info = CODON[codon];
-        if (info && info.aa !== 'Stop') {
-          setTimeout(() => {
-            playHarm(f1, 1.00, dur * 0.6, wave, 0.7);
-            playHarm(f2, 1.00, dur * 0.6, wave, 0.5);
-            playHarm(f3, 1.00, dur * 0.6, wave, 0.5);
-          }, dur * 700);
-        } else {
-          // STOP ⇒ caída
-          setTimeout(() => {
-            playTone(f3 * 3 / 2, .16, 'triangle');
-            setTimeout(() => playTone(f1, .16, 'triangle'), 120);
-          }, dur * 650);
-        }
-      }
+// --- MUTATIONS LAB LOGIC ---
+const MODAL_DATA = {
+  silent: { title: "Mutación Silenciosa 🤫", text: "Cambia una base de ARN, pero gracias a la redundancia del código genético, el codón resultante sigue codificando para el **mismo aminoácido**. <br><br>En nuestra música, verás que cambia un arpegio levemente, pero el acorde armónico (la propiedad química) permanece intacto. ¡La evolución a veces pasa desapercibida!" },
+  missense: { title: "Mutación de Cambio de Sentido 🧬", text: "Altera una letra clave en un codón, provocando que se coloque un **aminoácido completamente distinto**. <br><br>Musicalmente, esto puede transformar un acorde mayor estable en uno tenso o disminuido, cambiando el tono emocional de nuestra proteína para siempre." },
+  nonsense: { title: "Mutación Sin Sentido 🛑", text: "Un error catastrófico. Un cambio de base crea accidentalmente un codón de PARADA (UAA, UAG, UGA). <br><br>El ribosoma se detiene prematuramente. La proteína queda incompleta. En nuestro estudio, escucharás cómo la canción se corta abruptamente en un ruido sordo." },
+  frameshift: { title: "Desplazamiento del Marco 🌪️", text: "Se inserta o elimina una base extra. Como el ARN se lee de 3 en 3, ¡este pequeño cambio desplaza la lectura de todos los codones siguientes!<br><br>Genera un caos absoluto. Toda la cadena de aminoácidos a partir de ese punto será diferente. ¡Escucharás una disonancia total comparada con la original!" }
+};
 
-      // ====== Audio Graph + visualizador ======
-      let audioCtx = null, masterGain, analyser;
-      
-      function ensureAudio() {
-        if (audioCtx) return;
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.9;
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 1024;
-        masterGain.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        startScope();
+function showModal(type) {
+  document.getElementById('modal-title').innerHTML = MODAL_DATA[type].title;
+  document.getElementById('modal-text').innerHTML = MODAL_DATA[type].text;
+  document.getElementById('modal').classList.add('active');
+}
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+
+let currentMutatedSequence = "";
+
+function applyMutation(type) {
+  const orig = cleanSequence(dom.input.value);
+  if(orig.length < 6) return alert("Secuencia muy corta para mutar.");
+  
+  let mut = orig;
+  let applied = false;
+
+  if (type === 'silent') {
+    for(let i=0; i<orig.length-2; i+=3) {
+      let codon = orig.substring(i, i+3);
+      let aa = CODON_TABLE[codon];
+      let alts = Object.keys(CODON_TABLE).filter(c => CODON_TABLE[c] === aa && c !== codon);
+      if(alts.length > 0) {
+        mut = orig.substring(0, i) + alts[0] + orig.substring(i+3);
+        applied = true; break;
       }
-      
-      function env(duration) {
-        const g = audioCtx.createGain(), now = audioCtx.currentTime;
-        const a = Math.min(.01, duration * .15), d = Math.min(.06, duration * .2), s = .85, r = Math.min(.12, duration * .25);
-        g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(1, now + a);
-        g.gain.linearRampToValueAtTime(s, now + a + d);
-        g.gain.linearRampToValueAtTime(0, now + duration + r);
-        return g;
-      }
-      
-      function playTone(freq, duration, type) {
-        const o = audioCtx.createOscillator();
-        o.type = type;
-        o.frequency.value = freq;
-        o.connect(env(duration)).connect(masterGain);
-        o.start();
-        o.stop(audioCtx.currentTime + duration + .2);
-      }
-      
-      function playHarm(freq, ratio, duration, type, gainMul = .6) {
-        const o = audioCtx.createOscillator();
-        o.type = type;
-        o.frequency.value = freq * ratio;
-        const e = env(duration);
-        e.gain.value *= gainMul;
-        o.connect(e).connect(masterGain);
-        o.start();
-        o.stop(audioCtx.currentTime + duration + .2);
-      }
-      
-      function startScope() {
-        const canvas = document.getElementById('scope');
-        const ctx = canvas.getContext('2d');
-        
-        function loop() {
-          const W = canvas.width = canvas.clientWidth * devicePixelRatio;
-          const H = canvas.height = canvas.clientHeight * devicePixelRatio;
-          const data = new Uint8Array(analyser.frequencyBinCount);
-          analyser.getByteFrequencyData(data);
-          
-          ctx.clearRect(0, 0, W, H);
-          
-          // Create gradient for bars
-          const grd = ctx.createLinearGradient(0, 0, W, 0);
-          grd.addColorStop(0, '#00c8ff');
-          grd.addColorStop(1, '#0077b6');
-          ctx.fillStyle = grd;
-          
-          const barW = Math.max(2, (W / data.length) * 1.5);
-          for (let i = 0; i < data.length; i++) {
-            const h = (data[i] / 255) * (H * 0.9);
-            const x = i * barW, y = H - h;
-            ctx.fillRect(x, y, barW * .9, h);
+    }
+  } 
+  else if (type === 'missense') {
+    for(let i=3; i<orig.length-2; i+=3) { // Skip start codon
+      let codon = orig.substring(i, i+3);
+      let aa = CODON_TABLE[codon];
+      let bases = ['G','U','A','C'];
+      for(let b of bases) {
+        if(b !== codon[0]) {
+          let newCod = b + codon.substring(1);
+          let newAa = CODON_TABLE[newCod];
+          if(newAa !== aa && newAa !== 'Stop') {
+            mut = orig.substring(0, i) + newCod + orig.substring(i+3);
+            applied = true; break;
           }
-          requestAnimationFrame(loop);
-        }
-        loop();
-      }
-
-      // ====== Secuencia y UI ======
-      const dom = {
-        seq: document.getElementById('seq'),
-        grid: document.getElementById('grid'),
-        lenStat: document.getElementById('lenStat'),
-        countG: document.getElementById('countG'),
-        countU: document.getElementById('countU'),
-        countA: document.getElementById('countA'),
-        countC: document.getElementById('countC'),
-        invalid: document.getElementById('invalid'),
-        codonList: document.getElementById('codonList'),
-        codonTable: document.getElementById('codonTable'),
-        bpm: document.getElementById('bpm'),
-        bpmValue: document.getElementById('bpmValue'),
-        wave: document.getElementById('wave'),
-        root: document.getElementById('root'),
-        scale: document.getElementById('scale'),
-        octave: document.getElementById('octave'),
-        div: document.getElementById('div'),
-        play: document.getElementById('play'),
-        pause: document.getElementById('pause'),
-        stop: document.getElementById('stop'),
-        example: document.getElementById('example'),
-        clear: document.getElementById('clear'),
-        tests: [...document.querySelectorAll('.test')]
-      };
-
-      let seqClean = "", seqInvalid = 0, playing = false, paused = false, stepTimer = null, codonIndex = 0, codonArray = [];
-
-      function sanitize(raw) {
-        const up = (raw || "").toUpperCase().replace(/\s+/g, '');
-        let clean = "", invalid = 0;
-        for (const ch of up) {
-          if ("GUAC".includes(ch)) clean += ch; else if (ch) invalid++;
-        }
-        return [clean, invalid];
-      }
-
-      function updateStats() {
-        dom.lenStat.textContent = seqClean.length;
-        dom.countG.textContent = [...seqClean].filter(c => c === 'G').length;
-        dom.countU.textContent = [...seqClean].filter(c => c === 'U').length;
-        dom.countA.textContent = [...seqClean].filter(c => c === 'A').length;
-        dom.countC.textContent = [...seqClean].filter(c => c === 'C').length;
-        dom.invalid.textContent = seqInvalid;
-      }
-
-      function renderBaseGrid() {
-        dom.grid.innerHTML = "";
-        const frag = document.createDocumentFragment();
-        [...seqClean].forEach((b, i) => {
-          const d = document.createElement('div');
-          d.className = 'cell';
-          d.dataset.b = b;
-          d.dataset.i = i;
-          d.textContent = b;
-          frag.appendChild(d);
-        });
-        dom.grid.appendChild(frag);
-      }
-
-      function splitCodons() {
-        codonArray = [];
-        for (let i = 0; i + 2 < seqClean.length; i += 3) {
-          codonArray.push(seqClean.slice(i, i + 3));
         }
       }
-
-      function renderCodonList() {
-        dom.codonList.innerHTML = "";
-        const frag = document.createDocumentFragment();
-        codonArray.forEach((c, idx) => {
-          const info = CODON[c] || {aa: '?', long: 'Desconocido', one: '?'};
-          const card = document.createElement('div');
-          card.className = 'codon-card';
-          card.dataset.idx = idx;
-          
-          const left = document.createElement('div');
-          left.innerHTML = `
-            <div class="codon-triplet">${c}</div>
-            <div class="codon-name">${info.long}</div>
-          `;
-          
-          const right = document.createElement('div');
-          right.className = 'codon-aa ' + (info.aa === 'Stop' ? 'stop' : '');
-          right.textContent = info.aa;
-          
-          card.appendChild(left);
-          card.appendChild(right);
-          
-          card.addEventListener('click', () => {
-            playCodonSound(c, {
-              wave: dom.wave.value,
-              key: dom.root.value,
-              scale: dom.scale.value,
-              oct: Number(dom.octave.value),
-              dur: stepDur()
-            });
-            card.classList.add('pulse');
-            setTimeout(() => card.classList.remove('pulse'), 500);
-          });
-          
-          frag.appendChild(card);
-        });
-        dom.codonList.appendChild(frag);
-      }
-
-      function buildFullCodonTable() {
-        dom.codonTable.innerHTML = "";
-        const bases = ['U', 'C', 'A', 'G'];
-        const all = [];
-        for (const b1 of bases)
-          for (const b2 of bases)
-            for (const b3 of bases)
-              all.push(b1 + b2 + b3);
-              
-        const frag = document.createDocumentFragment();
-        for (const c of all) {
-          const info = CODON[c];
-          const t = document.createElement('div');
-          t.className = 'codon-tile';
-          t.innerHTML = `
-            <b>${c}</b>
-            <div class="amino-acid">${info.long}</div>
-            <div class="codon-aa ${info.aa === 'Stop' ? 'stop' : ''}">${info.aa}</div>
-          `;
-          t.addEventListener('click', () => {
-            playCodonSound(c, {
-              wave: dom.wave.value,
-              key: dom.root.value,
-              scale: dom.scale.value,
-              oct: Number(dom.octave.value),
-              dur: stepDur()
-            });
-            t.classList.add('pulse');
-            setTimeout(() => t.classList.remove('pulse'), 500);
-          });
-          frag.appendChild(t);
-        }
-        dom.codonTable.appendChild(frag);
-      }
-
-      function refresh() {
-        [seqClean, seqInvalid] = sanitize(dom.seq.value);
-        updateStats();
-        renderBaseGrid();
-        splitCodons();
-        renderCodonList();
-      }
-
-      // ====== Reproducción por codones ======
-      function stepDur() {
-        const bpm = Number(dom.bpm.value), div = Number(dom.div.value);
-        const quarter = 60 / bpm;
-        return quarter * div;
-      }
-      
-      function setActiveBaseRange(startIdx) {
-        const prev = dom.grid.querySelectorAll('.cell.active');
-        prev.forEach(e => e.classList.remove('active'));
-        for (let i = startIdx; i < startIdx + 3; i++) {
-          const el = dom.grid.querySelector(`.cell[data-i="${i}"]`);
-          if (el) el.classList.add('active');
-        }
-      }
-      
-      function toggleButtons() {
-        dom.play.disabled = playing && !paused;
-        dom.pause.disabled = !playing || paused;
-        dom.stop.disabled = !playing && !paused;
-      }
-      
-      function playSeq() {
-        if (!codonArray.length) return;
-        ensureAudio();
-        audioCtx.resume && audioCtx.resume();
-        playing = true;
-        paused = false;
-        codonIndex = 0;
-        toggleButtons();
-        
-        const step = () => {
-          if (!playing || paused) return;
-          if (codonIndex >= codonArray.length) {
-            stop();
-            return;
+      if(applied) break;
+    }
+  }
+  else if (type === 'nonsense') {
+    for(let i=3; i<orig.length-2; i+=3) {
+      let codon = orig.substring(i, i+3);
+      let bases = ['G','U','A','C'];
+      for(let j=0; j<3; j++) {
+        for(let b of bases) {
+          if(b !== codon[j]) {
+            let newCod = codon.substring(0, j) + b + codon.substring(j+1);
+            if(CODON_TABLE[newCod] === 'Stop') {
+              mut = orig.substring(0, i) + newCod + orig.substring(i+3);
+              applied = true; break;
+            }
           }
-          
-          const codon = codonArray[codonIndex];
-          playCodonSound(codon, {
-            wave: dom.wave.value,
-            key: dom.root.value,
-            scale: dom.scale.value,
-            oct: Number(dom.octave.value),
-            dur: stepDur()
-          });
-          
-          setActiveBaseRange(codonIndex * 3);
-          
-          // Pulso en la tarjeta correspondiente
-          const card = dom.codonList.querySelector(`.codon-card:nth-child(${codonIndex + 1})`);
-          if (card) {
-            card.classList.add('pulse');
-            setTimeout(() => card.classList.remove('pulse'), 500);
-          }
-          
-          codonIndex++;
-          stepTimer = setTimeout(step, stepDur() * 1000);
-        };
-        step();
-      }
-      
-      function pause() {
-        paused = true;
-        toggleButtons();
-      }
-      
-      function stop() {
-        playing = false;
-        paused = false;
-        codonIndex = 0;
-        clearTimeout(stepTimer);
-        const prev = dom.grid.querySelectorAll('.cell.active');
-        prev.forEach(e => e.classList.remove('active'));
-        toggleButtons();
-      }
-
-      // ====== Eventos ======
-      dom.seq.addEventListener('input', refresh);
-      
-      dom.example.addEventListener('click', () => {
-        dom.seq.value = `AUGGCUUUUAG GCUGCCGCA GGAUAA UGG UGUUGC UAA`.replace(/\s+/g, '');
-        refresh();
-      });
-      
-      dom.clear.addEventListener('click', () => {
-        dom.seq.value = '';
-        refresh();
-      });
-
-      dom.bpm.addEventListener('input', () => {
-        dom.bpmValue.textContent = dom.bpm.value;
-      });
-
-      dom.play.addEventListener('click', () => {
-        if (paused) {
-          paused = false;
-          toggleButtons();
-          playSeq();
-        } else {
-          playSeq();
         }
-      });
-      
-      dom.pause.addEventListener('click', pause);
-      dom.stop.addEventListener('click', stop);
+        if(applied) break;
+      }
+      if(applied) break;
+    }
+    if(!applied) { // force stop in middle if none 1 base away
+      let mid = Math.floor((orig.length/3)/2)*3;
+      mut = orig.substring(0, mid) + 'UAA' + orig.substring(mid+3);
+    }
+  }
+  else if (type === 'frameshift') {
+    // Insert random base at position 4 (second codon)
+    const bases = ['G','U','A','C'];
+    const rBase = bases[Math.floor(Math.random()*4)];
+    mut = orig.substring(0, 4) + rBase + orig.substring(4);
+  }
 
-      dom.tests.forEach(btn => {
-        btn.addEventListener('click', () => {
-          ensureAudio();
-          const b = btn.dataset.b;
-          const f = baseToFreq(b, dom.root.value, dom.scale.value, Number(dom.octave.value));
-          playTone(f, 0.25, dom.wave.value);
-        });
-      });
+  currentMutatedSequence = mut;
+  renderDiff(orig, mut);
+  document.getElementById('btn-load-mutation').style.display = 'block';
+}
 
-      // Acceso directo espacio play/pausa
-      document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && !e.repeat) {
-          e.preventDefault();
-          if (!playing || paused) dom.play.click();
-          else dom.pause.click();
-        }
-      });
+function renderDiff(orig, mut) {
+  const viewer = document.getElementById('diff-viewer');
+  
+  let origHtml = '<div class="diff-row"><div class="diff-label">Original:</div><div class="diff-seq">';
+  let origCodons = parseCodons(orig);
+  origCodons.forEach(c => {
+    origHtml += `<div class="codon-box"><b>${c.triplet}</b><span class="codon-aa">${c.abbr}</span></div>`;
+  });
+  origHtml += '</div></div>';
 
-      // Inicialización
-      refresh();
-      buildFullCodonTable();
-      toggleButtons();
-      dom.bpmValue.textContent = dom.bpm.value;
-    })();
-  </script>
+  let mutHtml = '<div class="diff-row" style="margin-top:1rem;"><div class="diff-label" style="color:var(--mutation);">Mutada:</div><div class="diff-seq">';
+  let mutCodons = parseCodons(mut);
+  
+  for(let i=0; i<Math.max(origCodons.length, mutCodons.length); i++) {
+    if(!mutCodons[i]) continue;
+    let isDiff = !origCodons[i] || origCodons[i].triplet !== mutCodons[i].triplet;
+    mutHtml += `<div class="codon-box ${isDiff ? 'mutated' : ''}"><b>${mutCodons[i].triplet}</b><span class="codon-aa">${mutCodons[i].abbr}</span></div>`;
+    // Stop rendering if it's a stop codon to show truncation
+    if(mutCodons[i].type === 'stop') break;
+  }
+  mutHtml += '</div></div>';
+
+  viewer.innerHTML = origHtml + mutHtml;
+}
+
+document.getElementById('btn-load-mutation').addEventListener('click', () => {
+  dom.input.value = currentMutatedSequence;
+  sequence = cleanSequence(currentMutatedSequence);
+  updateVisuals(sequence);
+  
+  // Switch back to Studio Tab
+  document.querySelector('[data-target="ws-sequencer"]').click();
+  // Play
+  setTimeout(() => playSequence(), 300);
+});
+
+// --- EVENTS ---
+document.querySelectorAll('.ws-tab').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.ws-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ws-content').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(e.target.dataset.target).classList.add('active');
+  });
+});
+
+dom.input.addEventListener('input', (e) => {
+  const clean = cleanSequence(e.target.value);
+  if(clean !== e.target.value) { const pos = e.target.selectionStart; e.target.value = clean; e.target.setSelectionRange(pos, pos); }
+  sequence = clean; updateVisuals(sequence);
+});
+dom.input.addEventListener('scroll', () => dom.visual.scrollTop = dom.input.scrollTop);
+
+dom.preset.addEventListener('change', (e) => {
+  if(!e.target.value) return;
+  dom.input.value = PRESETS[e.target.value];
+  dom.input.dispatchEvent(new Event('input'));
+  stopSequence();
+  document.getElementById('diff-viewer').innerHTML = '<p style="color: var(--text-muted); text-align: center; margin-top: 2rem;">Aplica una mutación arriba para ver los cambios.</p>';
+  document.getElementById('btn-load-mutation').style.display = 'none';
+});
+
+dom.bpm.addEventListener('input', (e) => dom.bpmVal.textContent = e.target.value);
+dom.btnPlay.addEventListener('click', () => isPlaying ? stopSequence() : playSequence());
+dom.btnStop.addEventListener('click', stopSequence);
+
+// Init
+dom.input.value = PRESETS.oxytocin;
+dom.input.dispatchEvent(new Event('input'));
+</script>
 </body>
 </html>
